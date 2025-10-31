@@ -361,3 +361,18 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/wx_duk/Debug LLVM
+
+# Console debug error output
+CONERR$
+
+# object files
+*.o
+*.obj
+
+# C++2a module file cache
+*.pcm
+gcm.cache/
+
+.exe
+.exe.manifest
