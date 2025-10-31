@@ -1,0 +1,34 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug CLI" />
+    <BuildType Name="Debug Single CLI" />
+    <BuildType Name="Debug WinMain" />
+    <BuildType Name="Release CLI" />
+    <BuildType Name="Release Single CLI" />
+    <BuildType Name="Release WinMain" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="../dux_cli_win32/dux_cli_win32.vcxproj" Id="988c3e58-379e-4f03-b22a-4f9b296346d0">
+    <BuildType Solution="Debug Single CLI|*" Project="Debug CLI" />
+    <BuildType Solution="Release Single CLI|*" Project="Release CLI" />
+    <Build Solution="Debug Single CLI|*" Project="false" />
+    <Build Solution="Release Single CLI|*" Project="false" />
+  </Project>
+  <Project Path="../dux_freetype/dux_freetype.vcxproj" Id="ef4232e1-2fc2-4fba-84e0-7c98ff9eb52f">
+    <BuildType Solution="Debug CLI|*" Project="Debug DLL" />
+    <BuildType Solution="Debug Single CLI|x64" Project="Debug CLI" />
+    <BuildType Solution="Debug WinMain|*" Project="Debug DLL" />
+    <BuildType Solution="Release CLI|*" Project="Release DLL" />
+    <BuildType Solution="Release Single CLI|*" Project="Release CLI" />
+    <BuildType Solution="Release WinMain|*" Project="Release DLL" />
+  </Project>
+  <Project Path="../dux_wx/dux_wx.vcxproj" Id="f99dd708-f524-49f7-9870-771c9fd316d2">
+    <BuildType Solution="Debug CLI|*" Project="Debug DLL" />
+    <BuildType Solution="Debug Single CLI|x64" Project="Debug CLI" />
+    <BuildType Solution="Debug WinMain|*" Project="Debug DLL" />
+    <BuildType Solution="Release CLI|*" Project="Release DLL" />
+    <BuildType Solution="Release Single CLI|*" Project="Release CLI" />
+    <BuildType Solution="Release WinMain|*" Project="Release DLL" />
+  </Project>
+</Solution>
