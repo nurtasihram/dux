@@ -1,0 +1,6 @@
+[submodule "wx_library"]
+	path = wx_library
+	url = https://github.com/nurtasihram/wx_library.git
+[submodule "dux_freetype/freetype"]
+	path = dux_freetype/freetype
+	url = https://github.com/freetype/freetype.git
