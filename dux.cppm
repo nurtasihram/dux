@@ -482,7 +482,7 @@ public:
 		this->pSetter = nullptr;
 		return pSetter;
 	}
-} inline Property;
+} Property;
 
 class Key {
 	duk_context *ctx;

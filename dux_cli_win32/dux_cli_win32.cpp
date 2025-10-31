@@ -220,7 +220,7 @@ protected:
 void commandline(Dux::Context &ctx) {
 	duk_push_global_object(ctx);
 
-	duk_load_library(ctx, load_dux);
+//	duk_load_library(ctx, load_dux);
 	duk_load_library(ctx, load_duk_cmdl);
 
 //	duk_eval_string(ctx, "Console.Reopen()");

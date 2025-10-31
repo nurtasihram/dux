@@ -1,7 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="dux_cli_win32.cpp" />
+    <Filter Include="wx_library">
+      <UniqueIdentifier>{6e621795-e858-492a-8bcd-40601421d35a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\modules">
+      <UniqueIdentifier>{cd3e272a-ee57-464a-bda8-bff8a4e4d243}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\prv_inc">
+      <UniqueIdentifier>{ad04b736-5644-4da9-a1a7-63f4e0c39902}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\pub_inc">
+      <UniqueIdentifier>{e2aeee90-dc86-408e-a93e-92f5e171f756}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="duktape">
+      <UniqueIdentifier>{c6e0d65f-01d3-410c-915b-d57c40fa68a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dux">
+      <UniqueIdentifier>{f4c731c0-0bd0-4df3-9f0c-56be069fde43}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="..\wx_library\wx.console.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
@@ -38,36 +57,23 @@
     <ClCompile Include="..\wx_library\wx.window.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
+    <ClCompile Include="dux_cli_win32.cpp" />
+    <ClCompile Include="..\dux.cppm">
+      <Filter>dux</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="duktape">
-      <UniqueIdentifier>{bdef9d58-6d61-45a7-bfe7-a2b73055d1d7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="wx_library">
-      <UniqueIdentifier>{fa509ef1-3c18-4db4-b355-c25779c87a5c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="wx_library\modules">
-      <UniqueIdentifier>{413fa44c-ad0c-4c48-b93a-05a708419627}</UniqueIdentifier>
-      <Extensions>*.cppm</Extensions>
-    </Filter>
-    <Filter Include="wx_library\prv_inc">
-      <UniqueIdentifier>{4f686591-1ffd-468f-8f30-0cf623711396}</UniqueIdentifier>
-      <Extensions>*.h;*.inl</Extensions>
-    </Filter>
-    <Filter Include="wx_library\pub_inc">
-      <UniqueIdentifier>{b3e4a56d-dba3-4449-bad0-02471e3858ae}</UniqueIdentifier>
-      <Extensions>*</Extensions>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\duktape\duk_config.h">
-      <Filter>duktape</Filter>
+    <ClInclude Include="..\wx_library\wx_defs.h">
+      <Filter>wx_library\prv_inc</Filter>
     </ClInclude>
     <ClInclude Include="..\duktape\duktape.h">
       <Filter>duktape</Filter>
     </ClInclude>
-    <ClInclude Include="..\wx_library\wx_defs.h">
-      <Filter>wx_library\prv_inc</Filter>
+    <ClInclude Include="..\duktape\duk_config.h">
+      <Filter>duktape</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dux.h">
+      <Filter>dux</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

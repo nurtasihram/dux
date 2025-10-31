@@ -1,0 +1,57 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/3dpart/">
+    <Project Path="duktape/duktape.vcxproj" Id="2f26ba54-fe19-4c16-92bf-5a4bd4f9c033" />
+    <Project Path="dux_freetype/freetype/builds/windows/vc2010/freetype.vcxproj" Id="78b079bd-9fc7-4b9e-b4a6-96da0f00248b" />
+  </Folder>
+  <Folder Name="/wx_library/" />
+  <Folder Name="/wx_library/modules/">
+    <File Path="../wx_library/wx.console.cppm" />
+    <File Path="../wx_library/wx.control.cppm" />
+    <File Path="../wx_library/wx.cppm" />
+    <File Path="../wx_library/wx.dialog.cppm" />
+    <File Path="../wx_library/wx.file.cppm" />
+    <File Path="../wx_library/wx.gdi.cppm" />
+    <File Path="../wx_library/wx.proto.cppm" />
+    <File Path="../wx_library/wx.realtime.cppm" />
+    <File Path="../wx_library/wx.resource.cppm" />
+    <File Path="../wx_library/wx.security.cppm" />
+    <File Path="../wx_library/wx.type.cppm" />
+    <File Path="../wx_library/wx.window.cppm" />
+  </Folder>
+  <Folder Name="/wx_library/prv_inc/">
+    <File Path="../wx_library/wx_defs.h" />
+    <File Path="../wx_library/wx__conio.inl" />
+    <File Path="../wx_library/wx__gdi.inl" />
+    <File Path="../wx_library/wx__msg.inl" />
+    <File Path="../wx_library/wx__msg_ctl.inl" />
+    <File Path="../wx_library/wx__realtime.inl" />
+    <File Path="../wx_library/wx__resource.inl" />
+    <File Path="../wx_library/wx__rm.inl" />
+    <File Path="../wx_library/wx__type.inl" />
+  </Folder>
+  <Folder Name="/wx_library/pub_inc/">
+    <File Path="../wx_library/wx_console" />
+    <File Path="../wx_library/wx_dialog" />
+    <File Path="../wx_library/wx_dll" />
+    <File Path="../wx_library/wx_gdi" />
+    <File Path="../wx_library/wx_main" />
+    <File Path="../wx_library/wx_realtime" />
+    <File Path="../wx_library/wx_resource" />
+    <File Path="../wx_library/wx_type" />
+    <File Path="../wx_library/wx_window" />
+  </Folder>
+  <Project Path="dux_cli_win32/dux_cli_win32.vcxproj" Id="532484b5-455d-414d-aed0-24694cfc165f">
+    <BuildDependency Project="duktape/duktape.vcxproj" />
+  </Project>
+  <Project Path="dux_freetype/dux_freetype.vcxproj" Id="ef4232e1-2fc2-4fba-84e0-7c98ff9eb52f">
+    <BuildDependency Project="duktape/duktape.vcxproj" />
+    <BuildDependency Project="dux_freetype/freetype/builds/windows/vc2010/freetype.vcxproj" />
+  </Project>
+  <Project Path="dux_wx/dux_wx.vcxproj" Id="f99dd708-f524-49f7-9870-771c9fd316d2">
+    <BuildDependency Project="duktape/duktape.vcxproj" />
+  </Project>
+</Solution>

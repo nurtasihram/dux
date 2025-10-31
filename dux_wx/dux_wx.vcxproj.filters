@@ -39,6 +39,9 @@
     <ClCompile Include="..\wx_library\wx.window.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
+    <ClCompile Include="..\dux.cppm">
+      <Filter>dux</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="duktape">
@@ -56,6 +59,9 @@
     <Filter Include="wx_library\pub_inc">
       <UniqueIdentifier>{b6aa5dd0-de9f-43b0-907a-5930b2157829}</UniqueIdentifier>
     </Filter>
+    <Filter Include="dux">
+      <UniqueIdentifier>{c4eb99d6-6b0a-4da4-9be1-a515b1de1c40}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\duktape\duk_config.h">
@@ -66,6 +72,9 @@
     </ClInclude>
     <ClInclude Include="..\wx_library\wx_defs.h">
       <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dux.h">
+      <Filter>dux</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
