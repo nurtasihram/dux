@@ -1,6 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="duktape">
+      <UniqueIdentifier>{c6e0d65f-01d3-410c-915b-d57c40fa68a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dux">
+      <UniqueIdentifier>{f4c731c0-0bd0-4df3-9f0c-56be069fde43}</UniqueIdentifier>
+    </Filter>
     <Filter Include="wx_library">
       <UniqueIdentifier>{6e621795-e858-492a-8bcd-40601421d35a}</UniqueIdentifier>
     </Filter>
@@ -12,12 +18,6 @@
     </Filter>
     <Filter Include="wx_library\pub_inc">
       <UniqueIdentifier>{e2aeee90-dc86-408e-a93e-92f5e171f756}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="duktape">
-      <UniqueIdentifier>{c6e0d65f-01d3-410c-915b-d57c40fa68a7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="dux">
-      <UniqueIdentifier>{f4c731c0-0bd0-4df3-9f0c-56be069fde43}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -71,9 +71,6 @@
     </ClInclude>
     <ClInclude Include="..\duktape\duk_config.h">
       <Filter>duktape</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dux.h">
-      <Filter>dux</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -8,9 +8,10 @@ module;
 
 export module dux;
 
+
 export namespace Dux {
 
-#pragma region Duktape HAL Helpers
+#pragma region duktape HAL helpers (reference named of duk_xxx)
 
 constexpr duk_uint_t DUK_DEFPROP_PUBLIC_CONST =
 DUK_DEFPROP_HAVE_VALUE |		// value
@@ -23,12 +24,13 @@ DUK_DEFPROP_CLEAR_WRITABLE |	// unwritable
 DUK_DEFPROP_CLEAR_ENUMERABLE |	// unenumerable
 DUK_DEFPROP_CLEAR_CONFIGURABLE;	// unconfigurable
 
-void *duk_put_c_instance_nassert(duk_context *ctx, duk_size_t size, duk_idx_t idx = -3) {
+void *duk_set_c_instance_nassert(duk_context *ctx, duk_size_t size, duk_idx_t idx = -1) {
 	// ... object(idx) ...
 	duk_push_string(ctx, "__c");
-	// ... object(idx) ... "__c"
+	// ... object(idx - 1) ... "__c"
 	auto pC = duk_push_fixed_buffer(ctx, size);
-	// ... object(idx) ... "__c" buffer
+	// ... object(idx - 2) ... "__c" buffer
+	if (idx < 0) idx -= 2;
 	duk_def_prop(ctx, idx, DUK_DEFPROP_PUBLIC_CONST); // object(idx)["__c"] = buffer
 	// ... object(idx) ...
 	return pC;
@@ -44,12 +46,13 @@ void *duk_get_c_instance_nassert(duk_context *ctx, duk_size_t *size, duk_idx_t i
 	return pC;
 }
 
-void duk_put_c_pointer_nassert(duk_context *ctx, void *ptr, duk_idx_t idx = -3) {
+void duk_set_c_pointer_nassert(duk_context *ctx, void *ptr, duk_idx_t idx = -1) {
 	// ... object(idx) ...
 	duk_push_string(ctx, "__c");
-	// ... object(idx) ... "__c"
+	// ... object(idx - 1) ... "__c"
 	duk_push_pointer(ctx, ptr);
-	// ... object(idx) ... "__c" ptr
+	// ... object(idx - 2) ... "__c" ptr
+	if (idx < 0) idx -= 2;
 	duk_def_prop(ctx, idx, DUK_DEFPROP_PUBLIC_CONST); // object(idx)["__c"] = ptr
 	// ... object(idx) ...
 }
@@ -64,10 +67,22 @@ void *duk_get_c_pointer_nassert(duk_context *ctx, duk_idx_t idx = -1) {
 	return pC;
 }
 
-void duk_set_destructor(duk_context *ctx, duk_c_function destructor, duk_idx_t idx = -2) {
+void duk_set_self_name(duk_context *ctx, const char *name, duk_idx_t idx = -1) {
+	// ... object(idx) ...
+	duk_push_string(ctx, "name");
+	// ... object(idx - 1) ... "name"
+	duk_push_string(ctx, name);
+	// ... object(idx - 2) ... "name" name
+	if (idx < 0) idx -= 2;
+	duk_def_prop(ctx, idx - 2, DUK_DEFPROP_PUBLIC_CONST); // object(idx).name = name
+	// ... object(idx) ...
+}
+
+void duk_set_destructor(duk_context *ctx, duk_c_function destructor, duk_idx_t idx = -1) {
 	// ... object(idx) ...
 	duk_push_c_function(ctx, destructor, 1);
-	// ... object(idx) ... destructor
+	// ... object(idx - 1) ... destructor
+	if (idx < 0) idx -= 1;
 	duk_set_finalizer(ctx, idx); // object(idx).$destructor = destructor
 	// ... object(idx) ...
 }
@@ -96,8 +111,8 @@ AnyClass *duk_get_c_instance(duk_context *ctx, duk_idx_t idx = -1) {
 }
 
 template<class AnyClass>
-inline void duk_put_c_pointer(duk_context *ctx, AnyClass *pInstance, duk_idx_t idx = -3) {
-	duk_put_c_pointer_nassert(ctx, (void *)pInstance, idx);
+inline void duk_set_c_pointer(duk_context *ctx, AnyClass *pInstance, duk_idx_t idx = -3) {
+	duk_set_c_pointer_nassert(ctx, (void *)pInstance, idx);
 }
 template<class AnyClass>
 AnyClass *duk_get_c_pointer(duk_context *ctx, duk_idx_t idx = -1) {
@@ -113,152 +128,89 @@ AnyClass *duk_get_c_pointer(duk_context *ctx, duk_idx_t idx = -1) {
 
 #pragma endregion
 
-#pragma region FromC
-template<class InType>
-struct from {};
-template<>
-struct from<void> {
-	static void to(duk_context *ctx, ...) {}
-};
-template<>
-struct from<std::nullptr_t> {
-	static void to(duk_context *ctx, std::nullptr_t) {
-		duk_push_null(ctx);
-	}
-};
-template<>
-struct from<bool> {
-	static void to(duk_context *ctx, bool val) {
-		duk_push_boolean(ctx, val);
-	}
-};
-template<>
-struct from<int32_t> {
-	static void to(duk_context *ctx, int32_t val) {
-		duk_push_int(ctx, val);
-	}
-};
-template<>
-struct from<int16_t> {
-	static void to(duk_context *ctx, int16_t val) {
-		duk_push_int(ctx, val);
-	}
-};
-template<>
-struct from<uint32_t> {
-	static void to(duk_context *ctx, uint32_t val) {
-		duk_push_uint(ctx, val);
-	}
-};
-template<>
-struct from<uint16_t> {
-	static void to(duk_context *ctx, uint16_t val) {
-		duk_push_uint(ctx, val);
-	}
-};
-template<>
-struct from<double> {
-	static void to(duk_context *ctx, double val) {
-		duk_push_number(ctx, val);
-	}
-};
-template<>
-struct from<float> {
-	static void to(duk_context *ctx, float val) {
-		duk_push_number(ctx, val);
-	}
-};
-template<>
-struct from<const char *> {
-	static void to(duk_context *ctx, const char *val) {
-		duk_push_string(ctx, val);
-	}
-};
-
+#pragma region Conversion from C++ to JS
 template<class AnyType>
-concept FromC = requires {
-	from<AnyType>::to(
-		std::declval<duk_context *>(),
-		std::declval<std::conditional_t<std::is_same_v<AnyType, void>, int, AnyType>>()
-	);
-};
+void duk_push_c(duk_context *ctx, AnyType val);
+template<>
+void duk_push_c(duk_context *ctx, std::nullptr_t)
+{ duk_push_null(ctx); }
+template<>
+void duk_push_c<bool>(duk_context *ctx, bool val)
+{ duk_push_boolean(ctx, val); }
+void duk_push_c(duk_context *ctx, int32_t val)
+{ duk_push_int(ctx, val); }
+void duk_push_c(duk_context *ctx, int16_t val)
+{ duk_push_int(ctx, val); }
+template<>
+void duk_push_c(duk_context *ctx, uint32_t val)
+{ duk_push_uint(ctx, val); }
+template<>
+void duk_push_c(duk_context *ctx, uint16_t val)
+{ duk_push_uint(ctx, val); }
+template<>
+void duk_push_c(duk_context *ctx, double val)
+{ duk_push_number(ctx, val); }
+template<>
+void duk_push_c(duk_context *ctx, float val)
+{ duk_push_number(ctx, val); }
+template<>
+void duk_push_c(duk_context *ctx, const char *val)
+{ duk_push_string(ctx, val); }
+
+template<class... Args>
+void duk_push_c(duk_context *ctx, Args... args)
+{ (duk_push_c(ctx, args), ...); }
 #pragma endregion
 
-#pragma region ToC
-template<class OutType>
-struct to {};
-template<>
-struct to<std::nullptr_t> {
-	static std::nullptr_t from(duk_context *ctx, duk_idx_t idx) {
-		duk_to_null(ctx, idx);
-		return nullptr;
-	}
-};
-template<>
-struct to<bool> {
-	static bool from(duk_context *ctx, duk_idx_t idx) {
-		return duk_to_boolean(ctx, idx) != 0;
-	}
-};
-template<>
-struct to<int32_t> {
-	static int32_t from(duk_context *ctx, duk_idx_t idx) {
-		return duk_to_int(ctx, idx);
-	}
-};
-template<>
-struct to<int16_t> {
-	static int16_t from(duk_context *ctx, duk_idx_t idx) {
-		return (int16_t)duk_to_int(ctx, idx);
-	}
-};
-template<>
-struct to<uint32_t> {
-	static uint32_t from(duk_context *ctx, duk_idx_t idx) {
-		return duk_to_uint32(ctx, idx);
-	}
-};
-template<>
-struct to<uint16_t> {
-	static uint16_t from(duk_context *ctx, duk_idx_t idx) {
-		return duk_to_uint16(ctx, idx);
-	}
-};
-template<>
-struct to<double> {
-	static double from(duk_context *ctx, duk_idx_t idx) {
-		return duk_to_number(ctx, idx);
-	}
-};
-template<>
-struct to<float> {
-	static float from(duk_context *ctx, duk_idx_t idx) {
-		return (float)duk_to_number(ctx, idx);
-	}
-};
-template<>
-struct to<const char *> {
-	static const char *from(duk_context *ctx, duk_idx_t idx) {
-		if (auto lpsz = duk_to_string(ctx, idx))
-			return lpsz;
-		duk_type_error(ctx, "Cannot convert to const char *");
-		duk_throw(ctx);
-	}
-};
-
+#pragma region Conversion from JS to C++
 template<class AnyType>
-concept ToC = requires {
-	{ to<AnyType>::from(std::declval<duk_context *>(), std::declval<duk_idx_t>()) } -> std::convertible_to<AnyType>;
-};
+AnyType duk_get(duk_context *ctx, duk_idx_t idx);
+template<>
+std::nullptr_t duk_get(duk_context *ctx, duk_idx_t idx) {
+	duk_to_null(ctx, idx);
+	return nullptr;
+}
+template<>
+bool duk_get(duk_context *ctx, duk_idx_t idx)
+{ return duk_to_boolean(ctx, idx) != 0; }
+template<>
+int32_t duk_get(duk_context *ctx, duk_idx_t idx)
+{ return duk_to_int(ctx, idx); }
+template<>
+int16_t duk_get(duk_context *ctx, duk_idx_t idx)
+{ return (int16_t)duk_to_int(ctx, idx); }
+template<>
+uint32_t duk_get(duk_context *ctx, duk_idx_t idx)
+{ return duk_to_uint32(ctx, idx); }
+template<>
+uint16_t duk_get(duk_context *ctx, duk_idx_t idx)
+{ return duk_to_uint16(ctx, idx); }
+template<>
+double duk_get(duk_context *ctx, duk_idx_t idx)
+{ return duk_to_number(ctx, idx); }
+template<>
+float duk_get(duk_context *ctx, duk_idx_t idx)
+{ return (float)duk_to_number(ctx, idx); }
+template<>
+const char *duk_get(duk_context *ctx, duk_idx_t idx) {
+	if (auto lpsz = duk_to_string(ctx, idx))
+		return lpsz;
+	duk_type_error(ctx, "Cannot convert from_js const char *");
+	duk_throw(ctx);
+}
+
+template<class... Args>
+void duk_get(duk_context *ctx, duk_idx_t startIdx, Args &... args)
+{ ((args = duk_get<Args>(ctx, startIdx++)), ...); }
 #pragma endregion
 
-#pragma region CFunction
+#pragma region c function (smart native function pointer)
 
 //!!!!!!!!!!!! - TODO: add force function not for constructors - !!!!!!!!!!!!//
 
-class CFunctionBase {
+class c_callable_base {
 public:
-	virtual ~CFunctionBase() = default;
+	virtual ~c_callable_base() = default;
 	virtual duk_ret_t call(duk_context *ctx, duk_idx_t nargs) = 0;
 public:
 	static duk_ret_t duk_c_reflect(duk_context *ctx) {
@@ -266,7 +218,7 @@ public:
 		// ...
 		duk_push_current_function(ctx);
 		// ... current_function
-		auto nf = duk_get_c_pointer<CFunctionBase>(ctx); // ... current_function (. __c)
+		auto nf = duk_get_c_pointer<c_callable_base>(ctx); // ... current_function (. __c)
 		// ... current_function
 		duk_pop(ctx);
 		// ...
@@ -274,35 +226,34 @@ public:
 	}
 };
 
-template<FromC RetType, ToC... Args>
-class CFunctionPtr : public CFunctionBase {
+template<class RetType, class... Args>
+class c_function : public c_callable_base {
 	using FnType = RetType(*)(Args...);
 	static constexpr size_t nArgs = sizeof...(Args);
 	static constexpr duk_ret_t duk_ret = std::is_void_v<RetType> ? 0 : 1;
 	FnType fn;
 public:
-	CFunctionPtr(FnType fn)
-		: fn(fn) {}
+	c_function(FnType fn) : fn(fn) {}
 public:
 	template<duk_idx_t...ind>
 	void reflect(duk_context *ctx, std::index_sequence<ind...>) {
 		if (!fn) {
 			duk_error(ctx, DUK_ERR_REFERENCE_ERROR,
-					  "C function pointer is null");
+					  "C callable pointer is null");
 			duk_throw(ctx);
 		}
 		if constexpr (duk_ret) {
 			if constexpr (nArgs) {
-				auto &&ret = fn(to<Args>::from(ctx, (duk_idx_t)(ind))...);
-				PushC<RetType>(ctx, ret);
+				auto &&ret = fn(duk_get<Args>(ctx, (duk_idx_t)(ind))...);
+				duk_push_c<RetType>(ctx, ret);
 			}
 			else {
 				auto &&ret = fn();
-				PushC<RetType>(ctx, ret);
+				duk_push_c<RetType>(ctx, ret);
 			}
 		}
 		else if constexpr (nArgs)
-			fn(to<Args>::from(ctx, (duk_idx_t)(ind))...);
+			 fn(duk_get<Args>(ctx, (duk_idx_t)(ind))...);
 		else fn();
 	}
 	duk_ret_t call(duk_context *ctx, duk_idx_t nargs) override {
@@ -317,15 +268,14 @@ public:
 	}
 };
 
-template<class AnyClass, FromC RetType, ToC... Args>
-class CMethodPtr : public CFunctionBase {
+template<class AnyClass, class RetType, class... Args>
+class c_method : public c_callable_base {
 	using FnType = RetType(AnyClass:: *)(Args...);
 	static constexpr size_t nArgs = sizeof...(Args);
 	static constexpr duk_ret_t duk_ret = std::is_void_v<RetType> ? 0 : 1;
 	FnType fn;
 public:
-	CMethodPtr(FnType fn)
-		: fn(fn) {}
+	c_method(FnType fn) : fn(fn) {}
 public:
 	template<duk_idx_t...ind>
 	void reflect(duk_context *ctx, AnyClass *pThis, std::index_sequence<ind...>) {
@@ -336,16 +286,16 @@ public:
 		}
 		if constexpr (duk_ret) {
 			if constexpr (nArgs) {
-				auto &&ret = (pThis->*fn)(to<Args>::from(ctx, (duk_idx_t)(ind))...);
-				PushC<RetType>(ctx, ret);
+				auto &&ret = (pThis->*fn)(duk_get<Args>(ctx, (duk_idx_t)(ind))...);
+				duk_push_c<RetType>(ctx, ret);
 			}
 			else {
 				auto &&ret = (pThis->*fn)();
-				PushC<RetType>(ctx, ret);
+				duk_push_c<RetType>(ctx, ret);
 			}
 		}
 		else if constexpr (nArgs)
-			(pThis->*fn)(to<Args>::from(ctx, (duk_idx_t)(ind))...);
+			 (pThis->*fn)(duk_get<Args>(ctx, (duk_idx_t)(ind))...);
 		else (pThis->*fn)();
 	}
 	duk_ret_t call(duk_context *ctx, duk_idx_t nargs) override {
@@ -367,153 +317,115 @@ public:
 	}
 };
 
-void AddFunction(duk_context *ctx, const char *name, duk_idx_t nargs, CFunctionBase *ptr, duk_idx_t idx = -3) {
-	// ... object(idx) ...
-	duk_push_string(ctx, name);
-	// ... object(idx) ... name
-	duk_push_c_function(ctx, CFunctionBase::duk_c_reflect, nargs);
-	// ... object(idx) ... name c_function
-	duk_put_c_pointer(ctx, ptr); // c_function.__c = ptr
-	// ... object(idx) ... name c_function
+void duk_push_c_callable(duk_context *ctx, c_callable_base *pFunction, duk_idx_t nargs, const char *name = nullptr) {
+	if (!pFunction) {
+		duk_error(ctx, DUK_ERR_REFERENCE_ERROR,
+				  "C callable pointer is null");
+		duk_throw(ctx);
+	}
+	// ... 
+	duk_push_c_function(ctx, c_callable_base::duk_c_reflect, nargs);
+	// ... c_function
+	duk_set_c_pointer(ctx, pFunction); // c_function.$__c = ptr
+	// ... c_function
 	duk_set_destructor(ctx, [](duk_context *ctx) {
-		auto nf = duk_get_c_pointer<CFunctionBase>(ctx);
+		auto nf = duk_get_c_pointer<c_callable_base>(ctx);
 		if (nf) delete nf;
 		return 0;
 	}); // c_function.$destructor = lambda
-	// ... object(idx) ... name c_function
-	duk_push_string(ctx, "name");
-	// ... object(idx) ... name c_function "name"
-	duk_push_string(ctx, name);
-	// ... object(idx) ... name c_function "name" name
-	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST); // c_function["name"] = name
-	// ... object(idx) ... name c_function
-	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST); // object(idx)[name] = c_function
-	// ... object(idx) ...
+	// ... c_function
+	if (name)
+		duk_set_self_name(ctx, name); // c_function.name = name
+	// ... c_function
+}
+template<>
+void duk_push_c(duk_context *ctx, c_callable_base *pFunction)
+{ duk_push_c_callable(ctx, pFunction, DUK_VARARGS); }
+
+template<class AnyType>
+concept c_callable_type =
+	std::is_function_v<std::remove_pointer_t<AnyType>> ||
+	std::is_member_function_pointer_v<AnyType>;
+
+class c_callable {
+	mutable c_callable_base *pFunction;
+	duk_idx_t nargs;
+public:
+	c_callable(const c_callable &c) : pFunction(c.pFunction) { c.pFunction = nullptr; }
+	template<class RetType, class... Args>
+	c_callable(RetType(*pfn)(Args...)) :
+		pFunction(new c_function<RetType, Args...>(pfn)),
+		nargs(sizeof...(Args)) {}
+	template<class AnyClass, class RetType, class... Args>
+	c_callable(RetType(AnyClass:: *pmd)(Args...)) :
+		pFunction(new c_method<AnyClass, RetType, Args...>(pmd)),
+		nargs(sizeof...(Args)) {}
+	~c_callable() {
+		if (pFunction) delete pFunction;
+		pFunction = nullptr;
+	}
+public:
+	inline duk_idx_t NArgs() const { return nargs; }
+public:
+	inline operator bool() const { return pFunction; }
+	inline operator c_callable_base *() {
+		auto pFunction = this->pFunction;
+		this->pFunction = nullptr;
+		return pFunction;
+	}
+};
+inline void duk_push_c_callable(duk_context *ctx, c_callable callable, const char *name = nullptr)
+{ duk_push_c_callable(ctx, callable, callable.NArgs()); }
+template<c_callable_type AnyFunc>
+inline void duk_push_c_callable_expose(duk_context *ctx, AnyFunc fn)
+{ duk_push_c_callable(ctx, fn, typeid(AnyFunc).name()); }
+template<c_callable_type AnyFunc>
+inline void duk_push_c(duk_context *ctx, AnyFunc fn)
+{ duk_push_c_callable(ctx, fn); }
+
+#pragma endregion
+	
+namespace property {
+	struct get_set;
+	struct get : private c_callable {
+		get(c_callable getter) : c_callable(getter) {}
+		get_set set(c_callable setter);
+		using c_callable::operator c_callable_base *;
+	};
+	struct set : private c_callable {
+		set(c_callable setter) : c_callable(setter) {}
+		get_set get(c_callable getter);
+		using c_callable::operator c_callable_base *;
+	};
+	struct get_set : private get, private set {
+		get_set(property::get getter, property::set setter) : property::get(getter), property::set(setter) {}
+		inline operator c_callable_base *() {
+			if (c_callable_base *getter = (property::get)(*this)) return getter;
+			if (c_callable_base *setter = (property::set)(*this)) return setter;
+			return nullptr;
+		}
+	};
+	inline get_set get::set(c_callable setter) { return{ *this, setter }; }
+	inline get_set set::get(c_callable getter) { return{ getter, *this }; }
 }
 
-template<class RetType, class... Args>
-void AddFunction(duk_context *ctx, const char *name, RetType(*pfn)(Args...), duk_idx_t idx = -3)
-{ AddFunction(ctx, name, sizeof...(Args), new CFunctionPtr(pfn), idx); }
-
-template<class AnyClass, class RetType, class... Args>
-void AddMethod(duk_context *ctx, const char *name, RetType(AnyClass:: *pmd)(Args...), duk_idx_t idx = -3)
-{ AddFunction(ctx, name, sizeof...(Args), new CMethodPtr(pmd), idx); }
-#pragma endregion
-
-class IProperty {
-	CFunctionBase *pGetter;
-	CFunctionBase *pSetter;
-	class R {
-		friend class IProperty;
-		CFunctionBase *pGetter;
-	public:
-		~R() {
-			if (pGetter) delete pGetter;
-		}
-		template<FromC RetType, ToC ArgType>
-		inline IProperty set(RetType(*pfnSetter)(ArgType)) {
-			return{ pGetter, new CFunctionPtr((void(*)(ArgType))pfnSetter) };
-		}
-		template<class AnyClass, FromC RetType, ToC ArgType>
-		inline IProperty set(RetType(AnyClass:: *pmdSetter)(ArgType)) {
-			return{ pGetter, new CMethodPtr((void(AnyClass:: *)(ArgType))pmdSetter) };
-		}
-	public:
-		inline CFunctionBase *__getter() {
-			auto pGetter = this->pGetter;
-			this->pGetter = nullptr;
-			return pGetter;
-		}
-	};
-	class W {
-		friend class IProperty;
-		CFunctionBase *pSetter;
-	public:
-		~W() {
-			if (pSetter) delete pSetter;
-		}
-		template<FromC RetType>
-		inline IProperty get(RetType(*pfnGetter)()) {
-			return{ new CFunctionPtr(pfnGetter), pSetter };
-		}
-		template<class AnyClass, FromC RetType>
-		inline IProperty get(RetType(AnyClass:: *pmdGetter)()) {
-			return{ new CMethodPtr(pmdGetter), pSetter };
-		}
-	public:
-		inline CFunctionBase *__setter() {
-			auto pSetter = this->pSetter;
-			this->pSetter = nullptr;
-			return pSetter;
-		}
-	};
-public:
-	IProperty(CFunctionBase *pGetter = nullptr, CFunctionBase *pSetter = nullptr)
-		: pGetter(pGetter), pSetter(pSetter) {}
-	~IProperty() {
-		if (pGetter) delete pGetter;
-		if (pSetter) delete pSetter;
-	}
-public:
-	template<FromC RetType, ToC ArgType>
-	inline W set(RetType(*pfnSetter)(ArgType)) {
-		return new CFunctionPtr((void(*)(ArgType))pfnSetter);
-	}
-	template<class AnyClass, FromC RetType, ToC ArgType>
-	inline W set(RetType(AnyClass:: *pmdSetter)(ArgType)) {
-		return new CMethodPtr((void(AnyClass:: *)(ArgType))pmdSetter);
-	}
-	template<FromC RetType>
-	inline R get(RetType(*pfnGetter)()) {
-		return new CFunctionPtr(pfnGetter);
-	}
-	template<class AnyClass, FromC RetType>
-	inline R get(RetType(AnyClass:: *pmdGetter)()) {
-		return new CMethodPtr(pmdGetter);
-	}
-public:
-	inline CFunctionBase *__getter() {
-		auto pGetter = this->pGetter;
-		this->pGetter = nullptr;
-		return pGetter;
-	}
-	inline CFunctionBase *__setter() {
-		auto pSetter = this->pSetter;
-		this->pSetter = nullptr;
-		return pSetter;
-	}
-} Property;
-
-class Key {
+class key {
 	duk_context *ctx;
 	const char *name;
 	duk_idx_t idx;
 public:
-	Key(duk_context *ctx, const char *name, duk_idx_t idx) : ctx(ctx), name(name), idx(idx) {}
+	key(duk_context *ctx, const char *name, duk_idx_t idx) : ctx(ctx), name(name), idx(idx) {}
 public:
-	template<FromC RetType, ToC... Args>
-	void operator=(RetType(*fn)(Args...)) {
-		// ... object(idx) ...
-		AddFunction(ctx, name, fn); // object(idx).name = function
-		// ...object(idx) ...
-	}
-	template<class AnyClass, FromC RetType, ToC... Args>
-	void operator=(RetType(AnyClass::*fn)(Args...)) {
-		// ... object(idx) ...
-		AddMethod(ctx, name, fn); // object(idx).name = function
-		// ... object(idx) ...
-	}
-	template<FromC AnyType>
+	template<class AnyType>
 	void operator=(AnyType val) {
 		// ... object(idx) ...
 		duk_push_string(ctx, name);
 		// ... object(idx) ... name
-		from<AnyType>::to(ctx, val);
+		duk_push_c(ctx, val);
 		// ... object(idx) ... name value
 		duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST); // object(idx).name = value
 		// ... object(idx) ...
 	}
-
 };
 
 #pragma region InStack
@@ -541,7 +453,7 @@ public:
 	inline bool IsExternalBuffer() { return duk_is_external_buffer(ctx, idx) != 0; }
 	inline bool IsConstructable() { return duk_is_constructable(ctx, idx) != 0; }
 public:
-	inline Key operator[](const char *name) { return{ ctx, name, idx }; }
+	inline key operator[](const char *name) { return{ ctx, name, idx }; }
 };
 
 class Object : protected InStack {
@@ -601,7 +513,7 @@ public:
 	This(duk_context *ctx, duk_idx_t idx) : Object(ctx, idx) {}
 public:
 public:
-	inline Key operator[](const char *name) { return{ ctx, name, idx }; }
+	inline key operator[](const char *name) { return{ ctx, name, idx }; }
 };
 #pragma endregion
 

@@ -73,9 +73,6 @@
     <ClInclude Include="..\wx_library\wx_defs.h">
       <Filter>wx_library\prv_inc</Filter>
     </ClInclude>
-    <ClInclude Include="..\dux.h">
-      <Filter>dux</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\wx_library\wx__conio.inl">

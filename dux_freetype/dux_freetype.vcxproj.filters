@@ -21,8 +21,5 @@
     <ClInclude Include="..\duktape\duktape.h">
       <Filter>duktape</Filter>
     </ClInclude>
-    <ClInclude Include="..\dux.h">
-      <Filter>dux</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

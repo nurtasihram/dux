@@ -48,7 +48,6 @@
   <ItemGroup>
     <ClInclude Include="..\duktape\duktape.h" />
     <ClInclude Include="..\duktape\duk_config.h" />
-    <ClInclude Include="..\dux.h" />
     <ClInclude Include="..\wx_library\wx_defs.h" />
   </ItemGroup>
   <ItemGroup>

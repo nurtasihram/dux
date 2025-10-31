@@ -6,11 +6,37 @@
 
 #include "wx_main"
 
-#include "dux.h"
+#include "duktape.h"
 
 using namespace WX;
 
 import dux;
+
+struct duk_exception {
+	const char *msg;
+	duk_exception(const char *m) : msg(m) {}
+};
+
+void duk_errout(duk_context *ctx, const char *err_fmt, ...) {
+	va_list args;
+	va_start(args, err_fmt);
+	char buffer[2048];
+	vsnprintf_s(buffer, sizeof(buffer), err_fmt, args);
+	va_end(args);
+	auto attr = Console.Attributes();
+	Console.Attributes((attr - ConsoleColor::Foreground) + ConsoleColor::Red);
+	Console.ErrA(CString(buffer, CountOf(buffer)), " \n");
+	Console.Attributes(attr);
+};
+
+bool duk_load_library(duk_context *ctx, duk_safe_call_function func) {
+	duk_push_global_object(ctx);
+	auto rc = duk_safe_call(ctx, func, O, 1, 0);
+	if (rc == DUK_EXEC_SUCCESS) return true;
+	duk_put_global_string(ctx, "LastError");
+	duk_errout(ctx, "Load library failed: \n%s\n", duk_safe_to_stacktrace(ctx, -1));
+	return false;
+}
 
 class DuxContext : public Dux::Context {
 public:
@@ -265,18 +291,6 @@ int WxMain() {
 	Console.Title(T("JavaScript CommandLine Interface"));
 
 	Console.Log(T("\n -- Duktape x WindowX --\n\n"));
-
-	duk_errout = [](duk_context *ctx, const char *err_fmt, ...) {
-		va_list args;
-		va_start(args, err_fmt);
-		char buffer[2048];
-		vsnprintf_s(buffer, sizeof(buffer), err_fmt, args);
-		va_end(args);
-		auto attr = Console.Attributes();
-		Console.Attributes((attr - ConsoleColor::Foreground) + ConsoleColor::Red);
-		Console.ErrA(CString(buffer, CountOf(buffer)), " \n");
-		Console.Attributes(attr);
-	};
 
 	Win32HeapDux heap;
 
