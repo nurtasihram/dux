@@ -1,0 +1,275 @@
+#include <iostream>
+
+#include "wx_console"
+#include "wx_realtime"
+#include "wx_window"
+
+#include "wx_main"
+
+#include "duktape.h"
+
+using namespace WX;
+
+import dux;
+
+struct duk_exception {
+	const char *msg;
+	duk_exception(const char *m) : msg(m) {}
+};
+void duk_errout(duk_context *ctx, const char *err_fmt, ...) {
+	va_list args;
+	va_start(args, err_fmt);
+	char buffer[2048];
+	vsnprintf_s(buffer, sizeof(buffer), err_fmt, args);
+	va_end(args);
+	auto attr = Console.Attributes();
+	Console.Attributes((attr - ConsoleColor::Foreground) + ConsoleColor::Red);
+	Console.ErrA(CString(buffer, CountOf(buffer)), " \n");
+	Console.Attributes(attr);
+};
+
+bool duk_load_library(duk_context *ctx, duk_safe_call_function func) {
+	duk_push_global_object(ctx);
+	auto rc = duk_safe_call(ctx, func, O, 1, 0);
+	if (rc == DUK_EXEC_SUCCESS) return true;
+	duk_put_global_string(ctx, "LastError");
+	duk_errout(ctx, "Load library failed: \n%s\n", duk_safe_to_stacktrace(ctx, -1));
+	return false;
+}
+
+class DuxContext : public Dux::Context {
+public:
+	DuxContext(Dux::Heap & heap) : Dux::Context(heap) {}
+public:
+	void OnFatal(const char *msg) override {
+		throw duk_exception{ msg };
+	}
+};
+
+class DuxHeapWin32 : public Dux::Heap {
+	int nAlloc = 0;
+	WX::Heap heap = WX::Heap::Create();
+public:
+	DuxHeapWin32() {}
+protected:
+	void *Alloc(duk_size_t size) override {
+		if (!size) return O;
+		nAlloc++;
+		return heap.Alloc(size, HeapAllocFlag::GenerateExceptions);
+	}
+	void *Realloc(void *ptr, duk_size_t size) override {
+		if (!ptr) return Alloc(size);
+		if (!size) {
+			Free(ptr);
+			return O;
+		}
+		return heap.Realloc(ptr, size);
+	}
+	void Free(void *ptr) override {
+		if (!ptr) return;
+		nAlloc--;
+		heap.Free(ptr);
+	}
+public:
+	void PrintInfo() const {
+		auto &&sum = heap.Summaries();
+		Console.Log(
+			T(  "   Allocated: "), sum.Allocated(),
+			T("\n   Committed: "), sum.Committed(),
+			T("\n   Count: "), nAlloc, T("\n"));
+	}
+} dux_heap;
+
+static bool bExit = false;
+static bool bCmdl = false;
+static bool bReset = false;
+
+Event proc_ok = Event::Create().AutoReset();
+static constexpr auto WX_DUK_ON_CMD = WM_USER + 1;
+
+static UINT duk_cmdl_count = 0;
+
+static duk_ret_t cmd_exe(duk_context *ctx) {
+	auto lpszCode = duk_require_string(ctx, 0);
+	duk_size_t szCode = duk_get_length(ctx, 0);
+	duk_compile_lstring(ctx, DUK_COMPILE_SHEBANG, lpszCode, szCode);
+	duk_push_global_object(ctx);  /* 'this' binding */
+	duk_call_method(ctx, 0);
+	if (!duk_is_undefined(ctx, -1)) {
+		duk_to_string(ctx, -1);
+		auto len = duk_get_length(ctx, -1);
+		auto lpsz = duk_get_string(ctx, -1);
+		Console.LogA(CString(len, lpsz), '\n');
+		duk_pop(ctx);
+	}
+	return 0;
+}
+
+static duk_ret_t cmd_prc(duk_context *ctx) {
+	++duk_cmdl_count;
+	Console.Log(T("\n -- JavaScript --\n"));
+	proc_ok.Set();
+	for (;;) {
+		Msg msg;
+		try {
+			while (msg.Get()) {
+				if (msg.Window()) {
+					msg.Translate();
+					msg.Dispatch();
+				}
+				elif (msg.ID() == WX_DUK_ON_CMD) {
+					duk_push_c_function(ctx, cmd_exe, 1);
+					duk_push_string(ctx, msg.ParamW<LPCSTR>());
+					auto rc = duk_pcall(ctx, 1);
+					if (rc != DUK_EXEC_SUCCESS) {
+						duk_dup(ctx, -1);
+						duk_put_global_string(ctx, "LastError");
+						duk_errout(ctx, "%s\n", duk_safe_to_stacktrace(ctx, -1));
+					}
+					if (bReset) {
+						Console.Log(T("reset\n"));
+						--duk_cmdl_count;
+						return 0;
+					}
+					if (bExit) {
+						Console.Log(T("exit\n\n"));
+						--duk_cmdl_count;
+						return 0;
+					}
+					if (bCmdl) {
+						bCmdl = false;
+						do {
+							bReset = false;
+							duk_push_c_function(ctx, cmd_prc, 0);
+							duk_call(ctx, 0);
+							duk_pop(ctx);
+						} while (bReset);
+						continue;
+					}
+					proc_ok.Set();
+				}
+			}
+			--duk_cmdl_count;
+			proc_ok.Set();
+			return 0;
+		} catch (duk_exception err) {
+			duk_errout(ctx, "Duktape Exception: \n%s", err.msg);
+			proc_ok.Set();
+		} catch (Exception err) {
+			duk_errout(ctx, "WX Exception: \n%s", (LPCSTR)err.toStringA());
+			proc_ok.Set();
+		} catch (const std::exception &err) {
+			duk_errout(ctx, "C++ Exception: \n%s", err.what());
+			proc_ok.Set();
+		} catch (...) {
+			Console.Err(T("Other exception\n"));
+			proc_ok.Set();
+			bExit = true;
+			return 0;
+		}
+	}
+}
+
+void duk_add_prop_r(duk_context *ctx, const char *key, duk_c_function func) {
+
+}
+void duk_add_method(duk_context *ctx, const char *key, duk_idx_t idx,
+					duk_c_function func) {
+}
+
+duk_ret_t load_duk_cmdl(duk_context *ctx, void *) {
+	duk_push_global_object(ctx);
+	duk_add_prop_r(
+		ctx, "exit",
+		[](duk_context *ctx) -> duk_ret_t {
+			bExit = true;
+			return 0;
+		});
+	duk_add_prop_r(
+		ctx, "cmdl",
+		[](duk_context *ctx) -> duk_ret_t {
+			bCmdl = true;
+			return 0;
+		});
+	duk_add_prop_r(
+		ctx, "reset",
+		[](duk_context *ctx) -> duk_ret_t {
+			bReset = true;
+			return 0;
+		});
+	duk_add_prop_r(
+		ctx, "clear",
+		[](duk_context *ctx) -> duk_ret_t {
+			Console.Clear();
+			return 0;
+		});
+	duk_push_undefined(ctx);
+	duk_put_prop_string(ctx, -2, "LastError");
+//	duk_add_method(ctx, "print_mem", 0, print_mem);
+	return 0;
+}
+
+class BaseOf_Thread(CommandProcThread) {
+	SFINAE_Thread(CommandProcThread);
+private:
+	Dux::Context &ctx;
+public:
+	CommandProcThread(Dux::Context & ctx) : ctx(ctx) {}
+protected:
+	inline void OnRun() {
+		do {
+			bReset = false;
+			duk_push_c_function(ctx, cmd_prc, 0);
+			duk_call(ctx, 0);
+			duk_pop(ctx);
+			duk_gc(ctx, 0);
+		} while (bReset);
+		proc_ok.Set();
+	}
+};
+
+void commandline(Dux::Context &ctx) {
+
+//	duk_load_library(ctx, load_dux);
+	duk_load_library(ctx, load_duk_cmdl);
+	Console.Log(T("\n - Duktape symbols loaded -\n"));
+//	print_mem();
+
+	CommandProcThread cmd_prc_thr = ctx;
+	cmd_prc_thr.Create();
+
+	do {
+		proc_ok.Wait();
+		// print prompt
+		auto &&cur_pos = Console.CursorPosition();
+		++cur_pos.x;
+		Console.Fill(T('>'), duk_cmdl_count, cur_pos);
+		cur_pos.x += duk_cmdl_count + 1;
+		Console.CursorPosition(cur_pos);
+		// read input
+		char js_code[1024]{ 0 };
+		std::cin.getline(js_code, sizeof(js_code));
+		// process input
+		if (!cmd_prc_thr.StillActive()) {
+			Console.Log(T("Message procedurer had exited\n"));
+			break;
+		}
+		cmd_prc_thr.Post(WX_DUK_ON_CMD, js_code);
+	} while (duk_cmdl_count);
+}
+
+void DuxCLI(DuxHeapWin32 &heap) {
+	DuxContext ctx = heap;
+	Console.Log(T("\n - Duktape heap created -\n"));
+	heap.PrintInfo();
+	commandline(ctx);
+}
+
+int WxMain() {
+	Console.Title(T("JavaScript CommandLine Interface"));
+	Console.Log(T("\n -- Duktape x WindowX --\n\n"));
+	DuxCLI(dux_heap);
+	Console.Log(T("\n - Duktape destroyed -\n"));
+	dux_heap.PrintInfo();
+	return 0;
+}

@@ -1,0 +1,20 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/3dpart/">
+    <Project Path="duktape/duktape.vcxproj" Id="2f26ba54-fe19-4c16-92bf-5a4bd4f9c033" />
+    <Project Path="dux.freetype/freetype/builds/windows/vc2010/freetype.vcxproj" Id="78b079bd-9fc7-4b9e-b4a6-96da0f00248b" />
+  </Folder>
+  <Project Path="dux.cli/dux.cli.vcxproj" Id="eed95a94-d3eb-41aa-b3cd-71f7f9f12029">
+    <BuildDependency Project="duktape/duktape.vcxproj" />
+  </Project>
+  <Project Path="dux.freetype/dux.freetype.vcxproj" Id="80128841-d26d-4bf9-88e5-d82c756b8ee4">
+    <BuildDependency Project="duktape/duktape.vcxproj" />
+    <BuildDependency Project="dux.freetype/freetype/builds/windows/vc2010/freetype.vcxproj" />
+  </Project>
+  <Project Path="dux.wx/dux.wx.vcxproj" Id="db8dbcb2-e944-4a5a-b9c0-66fb075dee95">
+    <BuildDependency Project="duktape/duktape.vcxproj" />
+  </Project>
+</Solution>

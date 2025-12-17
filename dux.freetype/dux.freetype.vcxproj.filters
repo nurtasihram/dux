@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="duktape">
+      <UniqueIdentifier>{19519d0a-c8cd-4131-9993-74f6232c2729}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dux">
+      <UniqueIdentifier>{48a6e748-f5a1-482a-93a0-f89e2159c271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library">
+      <UniqueIdentifier>{d100c88c-3cfb-4f1c-80a0-1db920059a82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\modules">
+      <UniqueIdentifier>{4359e601-a3e4-444e-8c62-7b95fe83fb14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\prv_inc">
+      <UniqueIdentifier>{71689f94-fe90-4763-beb2-cae278f80666}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\pub_inc">
+      <UniqueIdentifier>{9a1bf90f-1bcb-4532-aeef-e73f09cd4b33}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\duktape\duktape.h">
+      <Filter>duktape</Filter>
+    </ClInclude>
+    <ClInclude Include="..\duktape\duk_config.h">
+      <Filter>duktape</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_library\wx_defs.h">
+      <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\dux.cppm">
+      <Filter>dux</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.console.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.control.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.dialog.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.file.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.gdi.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.proto.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.realtime.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.resource.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.security.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.type.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.window.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\wx_library\wx__msg.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx__msg_ctl.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx__rm.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_console">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_dialog">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_dll">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_gdi">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_main">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_realtime">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_resource">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_type">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_window">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+  </ItemGroup>
+</Project>

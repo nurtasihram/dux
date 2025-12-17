@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="duktape">
+      <UniqueIdentifier>{68d97894-9887-4ce2-96c9-e1976ec705fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="dux">
+      <UniqueIdentifier>{db7c20f1-9986-4853-818a-01577149a7fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library">
+      <UniqueIdentifier>{134105b6-1e8f-413e-9cfb-721688619f60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\modules">
+      <UniqueIdentifier>{2e435f88-16c2-42e0-b274-95104a568996}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\prv_inc">
+      <UniqueIdentifier>{fce59bf3-4df7-499e-8acf-2c8244446d30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\pub_inc">
+      <UniqueIdentifier>{08be3013-2f5c-4515-9262-e2e0460c8308}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\duktape\duktape.h">
+      <Filter>duktape</Filter>
+    </ClInclude>
+    <ClInclude Include="..\duktape\duk_config.h">
+      <Filter>duktape</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_library\wx_defs.h">
+      <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\dux.cppm">
+      <Filter>dux</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.console.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.control.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.dialog.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.file.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.gdi.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.proto.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.realtime.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.resource.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.security.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.type.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.window.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="dux.cli-win32.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\wx_library\wx__msg.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx__msg_ctl.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx__rm.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_console">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_dialog">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_dll">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_gdi">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_main">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_realtime">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_resource">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_type">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_window">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+  </ItemGroup>
+</Project>
