@@ -80,6 +80,11 @@ public:
 	}
 } dux_heap;
 
+duk_ret_t print_mem(duk_context*ctx = O) {
+	dux_heap.PrintInfo();
+	return 0;
+}
+
 static bool bExit = false;
 static bool bCmdl = false;
 static bool bReset = false;
@@ -171,12 +176,24 @@ static duk_ret_t cmd_prc(duk_context *ctx) {
 }
 
 void duk_add_prop_r(duk_context *ctx, const char *key, duk_c_function func) {
-
+	duk_push_string(ctx, key);
+	duk_push_c_function(ctx, func, 0);
+	duk_def_prop(ctx, -3,
+				 DUK_DEFPROP_HAVE_GETTER |		// setter
+				 DUK_DEFPROP_SET_ENUMERABLE |	// enumerable
+				 DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable
+	);
 }
 void duk_add_method(duk_context *ctx, const char *key, duk_idx_t idx,
 					duk_c_function func) {
+	duk_push_string(ctx, key);
+	duk_push_c_function(ctx, func, 0);
+	duk_def_prop(ctx, -3,
+				 DUK_DEFPROP_HAVE_VALUE |		// value
+				 DUK_DEFPROP_SET_ENUMERABLE |	// enumerable
+				 DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable
+	);
 }
-
 duk_ret_t load_duk_cmdl(duk_context *ctx, void *) {
 	duk_push_global_object(ctx);
 	duk_add_prop_r(
@@ -205,7 +222,7 @@ duk_ret_t load_duk_cmdl(duk_context *ctx, void *) {
 		});
 	duk_push_undefined(ctx);
 	duk_put_prop_string(ctx, -2, "LastError");
-//	duk_add_method(ctx, "print_mem", 0, print_mem);
+	duk_add_method(ctx, "print_mem", 0, print_mem);
 	return 0;
 }
 
@@ -233,13 +250,13 @@ void commandline(Dux::Context &ctx) {
 //	duk_load_library(ctx, load_dux);
 	duk_load_library(ctx, load_duk_cmdl);
 	Console.Log(T("\n - Duktape symbols loaded -\n"));
-//	print_mem();
+	print_mem();
 
 	CommandProcThread cmd_prc_thr = ctx;
 	cmd_prc_thr.Create();
+	proc_ok.Wait();
 
-	do {
-		proc_ok.Wait();
+	while (duk_cmdl_count) {
 		// print prompt
 		auto &&cur_pos = Console.CursorPosition();
 		++cur_pos.x;
@@ -255,7 +272,8 @@ void commandline(Dux::Context &ctx) {
 			break;
 		}
 		cmd_prc_thr.Post(WX_DUK_ON_CMD, js_code);
-	} while (duk_cmdl_count);
+		proc_ok.Wait();
+	}
 }
 
 void DuxCLI(DuxHeapWin32 &heap) {
