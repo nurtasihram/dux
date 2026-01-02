@@ -71,6 +71,8 @@
     <ClCompile Include="..\wx_library\wx.window.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
+    <ClCompile Include="wx.console.cpp" />
+    <ClCompile Include="wx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\wx_library\wx__msg.inl">

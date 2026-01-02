@@ -85,15 +85,6 @@ duk_ret_t print_mem(duk_context*ctx = O) {
 	return 0;
 }
 
-static bool bExit = false;
-static bool bCmdl = false;
-static bool bReset = false;
-
-Event proc_ok = Event::Create().AutoReset();
-static constexpr auto WX_DUK_ON_CMD = WM_USER + 1;
-
-static UINT duk_cmdl_count = 0;
-
 static duk_ret_t cmd_exe(duk_context *ctx) {
 	auto lpszCode = duk_require_string(ctx, 0);
 	duk_size_t szCode = duk_get_length(ctx, 0);
@@ -110,6 +101,13 @@ static duk_ret_t cmd_exe(duk_context *ctx) {
 	return 0;
 }
 
+static constexpr auto WX_DUK_ON_CMD = WM_USER + 1;
+
+static bool bExit = false;
+static bool bCmdl = false;
+static bool bReset = false;
+static UINT duk_cmdl_count = 0;
+Event proc_ok = Event::Create().AutoReset();
 static duk_ret_t cmd_prc(duk_context *ctx) {
 	++duk_cmdl_count;
 	Console.Log(T("\n -- JavaScript --\n"));
@@ -245,9 +243,10 @@ protected:
 	}
 };
 
-void commandline(Dux::Context &ctx) {
+duk_ret_t load_dux(duk_context *ctx, void *);
 
-//	duk_load_library(ctx, load_dux);
+void commandline(Dux::Context &ctx) {
+	duk_load_library(ctx, load_dux);
 	duk_load_library(ctx, load_duk_cmdl);
 	Console.Log(T("\n - Duktape symbols loaded -\n"));
 	print_mem();

@@ -72,6 +72,7 @@
       <Filter>wx_library\modules</Filter>
     </ClCompile>
     <ClCompile Include="dux.cli-win32.cpp" />
+    <ClCompile Include="..\dux.wx\wx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\wx_library\wx__msg.inl">

@@ -26,12 +26,7 @@
   <ItemGroup>
     <ClCompile Include="..\dux.cppm" />
     <ClCompile Include="..\wx_library\wx.console.cppm" />
-    <ClCompile Include="..\wx_library\wx.control.cppm">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.control.cppm" />
     <ClCompile Include="..\wx_library\wx.cppm" />
     <ClCompile Include="..\wx_library\wx.dialog.cppm" />
     <ClCompile Include="..\wx_library\wx.file.cppm" />
@@ -39,14 +34,11 @@
     <ClCompile Include="..\wx_library\wx.proto.cppm" />
     <ClCompile Include="..\wx_library\wx.realtime.cppm" />
     <ClCompile Include="..\wx_library\wx.resource.cppm" />
-    <ClCompile Include="..\wx_library\wx.security.cppm">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\wx_library\wx.security.cppm" />
     <ClCompile Include="..\wx_library\wx.type.cppm" />
     <ClCompile Include="..\wx_library\wx.window.cppm" />
+    <ClCompile Include="wx.console.cpp" />
+    <ClCompile Include="wx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\wx_library\wx_console" />

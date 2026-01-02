@@ -5,14 +5,21 @@ module;
 #include <stdint.h>
 #include <typeinfo>
 #include <memory>
-#include <string>
 
 export module dux;
-
 
 export namespace Dux {
 
 #pragma region duktape HAL helpers (reference named of duk_xxx)
+
+bool duk_always_construct(duk_context *ctx) {
+	if (duk_is_constructor_call(ctx))
+		return false;
+	auto nargs = duk_get_top(ctx);
+	duk_push_current_function(ctx);
+	duk_insert(ctx, 0);
+	duk_new(ctx, nargs);
+}
 
 constexpr duk_uint_t DUK_DEFPROP_PUBLIC_CONST =
 	DUK_DEFPROP_HAVE_VALUE |		// value
@@ -427,107 +434,16 @@ public:
 		duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST); // object(idx).name = val
 		// ... object(idx) ...
 	}
-};
-
-#pragma region InStack
-class InStack {
-protected:
-	duk_context *ctx;
-	duk_idx_t idx;
-public:
-	InStack(duk_context *ctx, duk_idx_t idx) : ctx(ctx), idx(idx) {}
-public:
-	inline bool IsUndefined() { return duk_is_undefined(ctx, idx) != 0; }
-	inline bool IsNull() { return duk_is_null(ctx, idx) != 0; }
-	inline bool IsObject() { return duk_is_object(ctx, idx) != 0; }
-	inline bool IsBoolean() { return duk_is_boolean(ctx, idx) != 0; }
-	inline bool IsNumber() { return duk_is_number(ctx, idx) != 0; }
-	inline bool IsString() { return duk_is_string(ctx, idx) != 0; }
-	inline bool IsArray() { return duk_is_array(ctx, idx) != 0; }
-	inline bool IsFunction() { return duk_is_function(ctx, idx) != 0; }
-	inline bool IsCFunction() { return duk_is_c_function(ctx, idx) != 0; }
-	inline bool IsBuffer() { return duk_is_buffer(ctx, idx) != 0; }
-	inline bool IsBufferData() { return duk_is_buffer_data(ctx, idx) != 0; }
-	inline bool IsPointer() { return duk_is_pointer(ctx, idx) != 0; }
-	inline bool IsDynamicBuffer() { return duk_is_dynamic_buffer(ctx, idx) != 0; }
-	inline bool IsFixedBuffer() { return duk_is_fixed_buffer(ctx, idx) != 0; }
-	inline bool IsExternalBuffer() { return duk_is_external_buffer(ctx, idx) != 0; }
-	inline bool IsConstructable() { return duk_is_constructable(ctx, idx) != 0; }
-public:
-	inline key operator[](const char *name) { return{ ctx, name, idx }; }
-};
-
-class Object : public InStack {
-public:
-	Object(duk_context *ctx, duk_idx_t idx) : InStack(ctx, idx) {}
-};
-class Boolean : public Object {
-public:
-	Boolean(duk_context *ctx, duk_idx_t idx) : Object(ctx, idx) {}
-public:
-	inline operator bool() { return duk_to_boolean(ctx, idx) != 0; }
-};
-class Number : public Object {
-public:
-	Number(duk_context *ctx, duk_idx_t idx) : Object(ctx, idx) {}
-public:
-	inline operator double() { return duk_to_number(ctx, idx); }
-	inline operator float() { return (float)duk_to_number(ctx, idx); }
-	inline operator int32_t() { return duk_to_int(ctx, idx); }
-	inline operator int16_t() { return (int16_t)duk_to_int(ctx, idx); }
-	inline operator uint32_t() { return duk_to_uint32(ctx, idx); }
-	inline operator uint16_t() { return (uint16_t)duk_to_uint32(ctx, idx); }
-};
-class String : public Object {
-public:
-	String(duk_context *ctx, duk_idx_t idx) : Object(ctx, idx) {}
-public:
-	inline size_t Length() { return duk_get_length(ctx, idx); }
-	inline size_t Bytes() {
-		duk_size_t size = 0;
-		duk_get_lstring(ctx, idx, &size);
-		return size;
-	}
-public:
-	inline operator const char *() { return duk_to_string(ctx, idx); }
-};
-class ArrayIndex : public Object {
-	duk_uarridx_t arr_idx;
-public:
-	ArrayIndex(duk_context *ctx, duk_idx_t idx, duk_uarridx_t arr_idx) :
-		Object(ctx, idx), arr_idx(arr_idx) {}
-public:
-	template<class AnyType>
-	inline void operator=(AnyType val) {
-		// ... array(idx) ...
-		dul_push_c(ctx, val);
-		// ... array(idx) ... val
-		duk_put_prop_index(ctx, idx, arr_idx); // ... array[arr_idx] = val
-		// ... array(idx) ...
-	}
-};
-class Array : public Object {
-public:
-	Array(duk_context *ctx, duk_idx_t idx) : Object(ctx, idx) {}
-public:
-	inline size_t Length() { return duk_get_length(ctx, idx); }
-public:
-	inline Object operator[](duk_uarridx_t index) {
+	inline void operator=(property::set setter) {
 		// ... object(idx) ...
-		duk_get_prop_index(ctx, idx, index); // object(idx)[index]
-		// ... object(idx) ... object(idx)[index]
-		return{ ctx, duk_get_top_index(ctx) - 1 };
+		duk_push_string(ctx, name);
+		// ... object(idx) ... name
+		duk_push_c(ctx, setter);
+		// ... object(idx) ... name val
+		duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST); // object(idx).name = val
+		// ... object(idx) ...
 	}
 };
-
-class This : public Object {
-public:
-	This(duk_context *ctx, duk_idx_t idx) : Object(ctx, idx) {}
-public:
-public:
-	inline key operator[](const char *name) { return{ ctx, name, idx }; }
-};
-#pragma endregion
 
 class Context {
 public:
@@ -580,14 +496,8 @@ private:
 		pThis->OnFatal(msg);
 	}
 public:
-	inline Object Global() {
-
-	}
-public:
 	inline operator duk_context *() { return ctx; }
 	inline operator const duk_context *() const { return ctx; }
-
-//	inline Key operator[](const char *name) { return Key(ctx, name); }
 };
 using Heap = Context::Heap;
 

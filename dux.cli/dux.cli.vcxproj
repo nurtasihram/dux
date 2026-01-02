@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\dux.cppm" />
+    <ClCompile Include="..\dux.wx\wx.cpp" />
     <ClCompile Include="..\wx_library\wx.console.cppm" />
     <ClCompile Include="..\wx_library\wx.control.cppm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
