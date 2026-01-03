@@ -8,16 +8,16 @@
       <UniqueIdentifier>{823c8d8b-d79b-4581-9ef6-224ffd5faff8}</UniqueIdentifier>
     </Filter>
     <Filter Include="wx_library">
-      <UniqueIdentifier>{40892a53-54be-4b1b-8775-081c21614ea2}</UniqueIdentifier>
+      <UniqueIdentifier>{0c69c95a-6039-4eaf-881e-5bc3b04a3f94}</UniqueIdentifier>
     </Filter>
     <Filter Include="wx_library\modules">
-      <UniqueIdentifier>{1247c876-7ed1-41ba-86b9-d62cfa2ae05f}</UniqueIdentifier>
+      <UniqueIdentifier>{96028847-ad2c-4759-a4b1-bfaa91aa0d34}</UniqueIdentifier>
     </Filter>
     <Filter Include="wx_library\prv_inc">
-      <UniqueIdentifier>{0033e6d4-6504-486f-9fad-893a71f42b62}</UniqueIdentifier>
+      <UniqueIdentifier>{c28fd217-7a5b-464e-bcc9-c1ac13cc93ae}</UniqueIdentifier>
     </Filter>
     <Filter Include="wx_library\pub_inc">
-      <UniqueIdentifier>{9e792c3e-de87-4d9b-acd4-99ebede6b9cc}</UniqueIdentifier>
+      <UniqueIdentifier>{c0ccf303-fcd1-4c43-b5a0-39854a8ec315}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -27,6 +27,9 @@
     <ClInclude Include="..\duktape\duk_config.h">
       <Filter>duktape</Filter>
     </ClInclude>
+    <ClInclude Include="..\wx_library\wx__nt.h">
+      <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
     <ClInclude Include="..\wx_library\wx_defs.h">
       <Filter>wx_library\prv_inc</Filter>
     </ClInclude>
@@ -35,6 +38,8 @@
     <ClCompile Include="..\dux.cppm">
       <Filter>dux</Filter>
     </ClCompile>
+    <ClCompile Include="wx.console.cpp" />
+    <ClCompile Include="wx.cpp" />
     <ClCompile Include="..\wx_library\wx.console.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
@@ -65,14 +70,15 @@
     <ClCompile Include="..\wx_library\wx.security.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
+    <ClCompile Include="..\wx_library\wx.string.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
     <ClCompile Include="..\wx_library\wx.type.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
     <ClCompile Include="..\wx_library\wx.window.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
-    <ClCompile Include="wx.console.cpp" />
-    <ClCompile Include="wx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\wx_library\wx__msg.inl">
@@ -84,13 +90,22 @@
     <None Include="..\wx_library\wx__rm.inl">
       <Filter>wx_library\prv_inc</Filter>
     </None>
+    <None Include="..\wx_library\wx">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
     <None Include="..\wx_library\wx_console">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_control">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_dialog">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_dll">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_file">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_gdi">
@@ -103,6 +118,12 @@
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_resource">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_security">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_string">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_type">

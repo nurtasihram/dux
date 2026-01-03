@@ -10,9 +10,9 @@ using namespace WX;
 #include "wx_console"
 
 template<class>
-class Wrapper;
+class WrapArgs;
 template<class...Args>
-class Wrapper<TypeList<Args...>> {
+class WrapArgs<TypeList<Args...>> {
 	using ArgsList = TypeList<Args...>;
 	template<size_t...ind>
 	static inline ArgsList from(duk_context *ctx, std::index_sequence<ind...>)
@@ -27,46 +27,54 @@ enum class NatType {
 	Pointer,
 	Buffer
 };
-template<auto fn, class Ret, class Args, class Own, NatType type>
-duk_ret_t duk_static_function_of(duk_context *ctx) {
-	auto &&invoker = Wrapper<Args>::from(ctx);
-	if_c (std::is_void_v<Own>) {
-		if_c (std::is_void_v<Ret>)
-			invoker.invoke(fn);
-		else {
-			duk_push_c(ctx, invoker.invoke(fn));
-			return 1;
-		}
-	} else {
-		duk_push_this(ctx);
-		Own *pOwn;
-		if_c (type == NatType::Pointer)
-			pOwn = duk_get_c_pointer<Own>(ctx);
-		else 
-			pOwn = duk_get_c_instance<Own>(ctx);
-		if_c (std::is_void_v<Ret>)
-			invoker.invoke(pOwn, fn);
-		else {
-			duk_push_c(ctx, invoker.invoke(pOwn, fn));
-			return 1;
-		}
-}
-	return 0;
-}
+
+template<auto fn>
+struct WrapFunc {
+	using Detail = functionof<decltype(fn)>;
+	using Return = typename Detail::Return;
+	using ArgsList = typename Detail::ArgsList;
+	using Parent = typename Detail::Parent;
+	static constexpr bool is_ellipsis = Detail::is_ellipsis;
+	static constexpr bool is_method = Detail::is_method;
+	static constexpr bool is_static = Detail::is_static;
+	static constexpr auto nargs = ArgsList::Length;
+public:
+	template<NatType type>
+	static duk_ret_t native(duk_context *ctx) {
+		auto &&invoker = WrapArgs<ArgsList>::from(ctx);
+		if_c (is_static) {
+			if_c (std::is_void_v<Return>)
+				invoker.invoke(fn);
+			else {
+				duk_push_c(ctx, invoker.invoke(fn));
+				return 1;
+			}
+		} else {
+			duk_push_this(ctx);
+			Parent *pParent;
+			if_c (type == NatType::Pointer)
+				pParent = duk_get_c_pointer<Parent>(ctx);
+			else 
+				pParent = duk_get_c_instance<Parent>(ctx);
+			if_c (std::is_void_v<Return>)
+				invoker.invoke(pParent, fn);
+			else {
+				duk_push_c(ctx, invoker.invoke(pParent, fn));
+				return 1;
+			}
+	}
+		return 0;
+	}
+
+};
 
 template<auto fn, NatType type = NatType::Static>
 void duk_push_function(duk_context *ctx) {
-	using Inf = functionof<decltype(fn)>;
-	using Ret = typename Inf::Return;
-	using Args = typename Inf::ArgsList;
-	using Own = typename Inf::Belong;
-	constexpr auto nargs = Inf::is_ellipsis ? DUK_VARARGS : Args::Length;
+	using Wrap = WrapFunc<fn>;
 	duk_push_c_function(
-		ctx,
-		duk_static_function_of<fn, Ret, Args, Own, type>,
-		nargs);
+		ctx,  Wrap::template native<type>, 
+		Wrap::is_ellipsis ? DUK_VARARGS : Wrap::nargs);
 }
-
 template<auto fn, NatType type>
 void duk_add_function(duk_context *ctx, const char *name, duk_idx_t idx = -1) {
 	duk_push_string(ctx, name);
@@ -82,7 +90,7 @@ class Context;
 class Object {
 	duk_context *ctx;
 	duk_idx_t idx;
-private:
+protected:
 	friend class Context;
 	Object(duk_context *ctx, duk_idx_t idx) : ctx(ctx), idx(idx) {}
 public:
@@ -95,13 +103,7 @@ public:
 
 class JStruct : public Object {
 	const char *name;
-	template<class AnyNative>
-	static duk_ret_t construtor(duk_context *ctx) {
-		if (duk_always_construct(ctx))
-			return 1;
-
-		return 0;
-	}
+private:
 	friend class Context;
 	JStruct(duk_context *ctx, duk_idx_t idx) : Object(ctx, idx) {}
 public:
@@ -123,12 +125,14 @@ public:
 }
 
 void print(const char *str, int sum) {
-	Console.LogA(CString(str, 1024), sum, '\n');
+	while (sum--)
+		Console.Write(CString(str, 1024));
+	Console.Write('\n');
 }
 
 duk_ret_t load_dux(duk_context *ctx, void *) {
 	nDux::Context c = ctx;
 	c.global()
-		.add<print>("print");
+		.method<print>("print");
 	return 0;
 }

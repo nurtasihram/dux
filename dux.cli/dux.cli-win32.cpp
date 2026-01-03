@@ -24,7 +24,8 @@ void duk_errout(duk_context *ctx, const char *err_fmt, ...) {
 	va_end(args);
 	auto attr = Console.Attributes();
 	Console.Attributes((attr - ConsoleColor::Foreground) + ConsoleColor::Red);
-	Console.ErrA(CString(buffer, CountOf(buffer)), " \n");
+	Console.Write(CString(buffer, CountOf(buffer)));
+	Console.Write('\n');
 	Console.Attributes(attr);
 };
 
@@ -73,10 +74,13 @@ protected:
 public:
 	void PrintInfo() const {
 		auto &&sum = heap.Summaries();
-		Console.Log(
-			T(  "   Allocated: "), sum.Allocated(),
-			T("\n   Committed: "), sum.Committed(),
-			T("\n   Count: "), nAlloc, T("\n"));
+		Console.Format(
+			"   Allocated: %d\n"
+			"   Committed: %d\n"
+			"   Count:     %d\n",
+			sum.Allocated(), 
+			sum.Committed(), 
+			nAlloc);
 	}
 } dux_heap;
 
@@ -95,7 +99,8 @@ static duk_ret_t cmd_exe(duk_context *ctx) {
 		duk_to_string(ctx, -1);
 		auto len = duk_get_length(ctx, -1);
 		auto lpsz = duk_get_string(ctx, -1);
-		Console.LogA(CString(len, lpsz), '\n');
+		Console.Write(lpsz, (DWORD)len);
+		Console.Write('\n');
 		duk_pop(ctx);
 	}
 	return 0;
@@ -110,7 +115,7 @@ static UINT duk_cmdl_count = 0;
 Event proc_ok = Event::Create().AutoReset();
 static duk_ret_t cmd_prc(duk_context *ctx) {
 	++duk_cmdl_count;
-	Console.Log(T("\n -- JavaScript --\n"));
+	Console.Write(T("\n -- JavaScript --\n"));
 	proc_ok.Set();
 	for (;;) {
 		Msg msg;
@@ -130,12 +135,12 @@ static duk_ret_t cmd_prc(duk_context *ctx) {
 						duk_errout(ctx, "%s\n", duk_safe_to_stacktrace(ctx, -1));
 					}
 					if (bReset) {
-						Console.Log(T("reset\n"));
+						Console.Write(T("reset\n"));
 						--duk_cmdl_count;
 						return 0;
 					}
 					if (bExit) {
-						Console.Log(T("exit\n\n"));
+						Console.Write(T("exit\n\n"));
 						--duk_cmdl_count;
 						return 0;
 					}
@@ -159,13 +164,13 @@ static duk_ret_t cmd_prc(duk_context *ctx) {
 			duk_errout(ctx, "Duktape Exception: \n%s", err.msg);
 			proc_ok.Set();
 		} catch (Exception err) {
-			duk_errout(ctx, "WX Exception: \n%s", (LPCSTR)err.toStringA());
+			duk_errout(ctx, "WX Exception: \n%s", (LPCSTR)toStringA(err));
 			proc_ok.Set();
 		} catch (const std::exception &err) {
 			duk_errout(ctx, "C++ Exception: \n%s", err.what());
 			proc_ok.Set();
 		} catch (...) {
-			Console.Err(T("Other exception\n"));
+			duk_errout(ctx, "Other exception\n");
 			proc_ok.Set();
 			bExit = true;
 			return 0;
@@ -248,7 +253,7 @@ duk_ret_t load_dux(duk_context *ctx, void *);
 void commandline(Dux::Context &ctx) {
 	duk_load_library(ctx, load_dux);
 	duk_load_library(ctx, load_duk_cmdl);
-	Console.Log(T("\n - Duktape symbols loaded -\n"));
+	Console.Write(T("\n - Duktape symbols loaded -\n"));
 	print_mem();
 
 	CommandProcThread cmd_prc_thr = ctx;
@@ -267,7 +272,7 @@ void commandline(Dux::Context &ctx) {
 		std::cin.getline(js_code, sizeof(js_code));
 		// process input
 		if (!cmd_prc_thr.StillActive()) {
-			Console.Log(T("Message procedurer had exited\n"));
+			Console.Write(T("Message procedurer had exited\n"));
 			break;
 		}
 		cmd_prc_thr.Post(WX_DUK_ON_CMD, js_code);
@@ -277,16 +282,16 @@ void commandline(Dux::Context &ctx) {
 
 void DuxCLI(DuxHeapWin32 &heap) {
 	DuxContext ctx = heap;
-	Console.Log(T("\n - Duktape heap created -\n"));
+	Console.Write(T("\n - Duktape heap created -\n"));
 	heap.PrintInfo();
 	commandline(ctx);
 }
 
 int WxMain() {
 	Console.Title(T("JavaScript CommandLine Interface"));
-	Console.Log(T("\n -- Duktape x WindowX --\n\n"));
+	Console.Write(T("\n -- Duktape x WindowX --\n\n"));
 	DuxCLI(dux_heap);
-	Console.Log(T("\n - Duktape destroyed -\n"));
+	Console.Write(T("\n - Duktape destroyed -\n"));
 	dux_heap.PrintInfo();
 	return 0;
 }

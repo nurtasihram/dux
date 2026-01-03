@@ -7,20 +7,20 @@
     <Filter Include="dux">
       <UniqueIdentifier>{48a6e748-f5a1-482a-93a0-f89e2159c271}</UniqueIdentifier>
     </Filter>
-    <Filter Include="wx_library">
-      <UniqueIdentifier>{d100c88c-3cfb-4f1c-80a0-1db920059a82}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="wx_library\modules">
-      <UniqueIdentifier>{4359e601-a3e4-444e-8c62-7b95fe83fb14}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="wx_library\prv_inc">
-      <UniqueIdentifier>{71689f94-fe90-4763-beb2-cae278f80666}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="wx_library\pub_inc">
-      <UniqueIdentifier>{9a1bf90f-1bcb-4532-aeef-e73f09cd4b33}</UniqueIdentifier>
-    </Filter>
     <Filter Include="freetype">
       <UniqueIdentifier>{19fc3f83-4b20-4048-8553-6cfbd66db931}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library">
+      <UniqueIdentifier>{414d4a7f-dd79-42d4-ae02-abc37c4834db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\modules">
+      <UniqueIdentifier>{cb967776-1db8-4952-a56a-ea74576aa6cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\prv_inc">
+      <UniqueIdentifier>{271ba360-d691-4ba9-8eaa-557b5251375a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\pub_inc">
+      <UniqueIdentifier>{d58e1c79-4176-4bb5-9bb3-d14ad986e811}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -29,9 +29,6 @@
     </ClInclude>
     <ClInclude Include="..\duktape\duk_config.h">
       <Filter>duktape</Filter>
-    </ClInclude>
-    <ClInclude Include="..\wx_library\wx_defs.h">
-      <Filter>wx_library\prv_inc</Filter>
     </ClInclude>
     <ClInclude Include="freetype\include\freetype\freetype.h">
       <Filter>freetype</Filter>
@@ -171,6 +168,12 @@
     <ClInclude Include="freetype\include\freetype\tttags.h">
       <Filter>freetype</Filter>
     </ClInclude>
+    <ClInclude Include="..\wx_library\wx__nt.h">
+      <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_library\wx_defs.h">
+      <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\dux.cppm">
@@ -206,6 +209,9 @@
     <ClCompile Include="..\wx_library\wx.security.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
+    <ClCompile Include="..\wx_library\wx.string.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
     <ClCompile Include="..\wx_library\wx.type.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
@@ -223,13 +229,22 @@
     <None Include="..\wx_library\wx__rm.inl">
       <Filter>wx_library\prv_inc</Filter>
     </None>
+    <None Include="..\wx_library\wx">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
     <None Include="..\wx_library\wx_console">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_control">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_dialog">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_dll">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_file">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_gdi">
@@ -242,6 +257,12 @@
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_resource">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_security">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_string">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_type">

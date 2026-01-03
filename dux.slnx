@@ -9,26 +9,29 @@
   </Folder>
   <Folder Name="/wx_library/" />
   <Folder Name="/wx_library/modules/">
-    <File Path="../wx_library/wx.console.cppm" />
-    <File Path="../wx_library/wx.control.cppm" />
-    <File Path="../wx_library/wx.cppm" />
-    <File Path="../wx_library/wx.dialog.cppm" />
-    <File Path="../wx_library/wx.file.cppm" />
-    <File Path="../wx_library/wx.gdi.cppm" />
-    <File Path="../wx_library/wx.proto.cppm" />
-    <File Path="../wx_library/wx.realtime.cppm" />
-    <File Path="../wx_library/wx.resource.cppm" />
-    <File Path="../wx_library/wx.security.cppm" />
-    <File Path="../wx_library/wx.type.cppm" />
-    <File Path="../wx_library/wx.window.cppm" />
+    <File Path="wx_library/wx.console.cppm" />
+    <File Path="wx_library/wx.control.cppm" />
+    <File Path="wx_library/wx.cppm" />
+    <File Path="wx_library/wx.dialog.cppm" />
+    <File Path="wx_library/wx.file.cppm" />
+    <File Path="wx_library/wx.gdi.cppm" />
+    <File Path="wx_library/wx.proto.cppm" />
+    <File Path="wx_library/wx.realtime.cppm" />
+    <File Path="wx_library/wx.resource.cppm" />
+    <File Path="wx_library/wx.security.cppm" />
+    <File Path="wx_library/wx.string.cppm" />
+    <File Path="wx_library/wx.type.cppm" />
+    <File Path="wx_library/wx.window.cppm" />
   </Folder>
   <Folder Name="/wx_library/prv_inc/">
     <File Path="wx_library/wx_defs.h" />
     <File Path="wx_library/wx__msg.inl" />
     <File Path="wx_library/wx__msg_ctl.inl" />
+    <File Path="wx_library/wx__nt.h" />
     <File Path="wx_library/wx__rm.inl" />
   </Folder>
   <Folder Name="/wx_library/pub_inc/">
+    <File Path="wx_library/wx" />
     <File Path="wx_library/wx_console" />
     <File Path="wx_library/wx_control" />
     <File Path="wx_library/wx_dialog" />
@@ -38,6 +41,8 @@
     <File Path="wx_library/wx_main" />
     <File Path="wx_library/wx_realtime" />
     <File Path="wx_library/wx_resource" />
+    <File Path="wx_library/wx_security" />
+    <File Path="wx_library/wx_string" />
     <File Path="wx_library/wx_type" />
     <File Path="wx_library/wx_window" />
   </Folder>

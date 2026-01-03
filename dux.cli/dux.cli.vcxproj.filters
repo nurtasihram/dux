@@ -27,6 +27,9 @@
     <ClInclude Include="..\duktape\duk_config.h">
       <Filter>duktape</Filter>
     </ClInclude>
+    <ClInclude Include="..\wx_library\wx__nt.h">
+      <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
     <ClInclude Include="..\wx_library\wx_defs.h">
       <Filter>wx_library\prv_inc</Filter>
     </ClInclude>
@@ -35,6 +38,8 @@
     <ClCompile Include="..\dux.cppm">
       <Filter>dux</Filter>
     </ClCompile>
+    <ClCompile Include="dux.cli-win32.cpp" />
+    <ClCompile Include="..\dux.wx\wx.cpp" />
     <ClCompile Include="..\wx_library\wx.console.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
@@ -65,14 +70,15 @@
     <ClCompile Include="..\wx_library\wx.security.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
+    <ClCompile Include="..\wx_library\wx.string.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
     <ClCompile Include="..\wx_library\wx.type.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
     <ClCompile Include="..\wx_library\wx.window.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
-    <ClCompile Include="dux.cli-win32.cpp" />
-    <ClCompile Include="..\dux.wx\wx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\wx_library\wx__msg.inl">
@@ -84,13 +90,22 @@
     <None Include="..\wx_library\wx__rm.inl">
       <Filter>wx_library\prv_inc</Filter>
     </None>
+    <None Include="..\wx_library\wx">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
     <None Include="..\wx_library\wx_console">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_control">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_dialog">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_dll">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_file">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_gdi">
@@ -103,6 +118,12 @@
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_resource">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_security">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_library\wx_string">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_library\wx_type">

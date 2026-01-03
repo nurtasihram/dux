@@ -22,6 +22,7 @@
     <ClInclude Include="..\duktape\duktape.h" />
     <ClInclude Include="..\duktape\duk_config.h" />
     <ClInclude Include="..\wx_library\wx_defs.h" />
+    <ClInclude Include="..\wx_library\wx__nt.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\dux.cppm" />
@@ -35,19 +36,25 @@
     <ClCompile Include="..\wx_library\wx.realtime.cppm" />
     <ClCompile Include="..\wx_library\wx.resource.cppm" />
     <ClCompile Include="..\wx_library\wx.security.cppm" />
+    <ClCompile Include="..\wx_library\wx.string.cppm" />
     <ClCompile Include="..\wx_library\wx.type.cppm" />
     <ClCompile Include="..\wx_library\wx.window.cppm" />
     <ClCompile Include="wx.console.cpp" />
     <ClCompile Include="wx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\wx_library\wx" />
     <None Include="..\wx_library\wx_console" />
+    <None Include="..\wx_library\wx_control" />
     <None Include="..\wx_library\wx_dialog" />
     <None Include="..\wx_library\wx_dll" />
+    <None Include="..\wx_library\wx_file" />
     <None Include="..\wx_library\wx_gdi" />
     <None Include="..\wx_library\wx_main" />
     <None Include="..\wx_library\wx_realtime" />
     <None Include="..\wx_library\wx_resource" />
+    <None Include="..\wx_library\wx_security" />
+    <None Include="..\wx_library\wx_string" />
     <None Include="..\wx_library\wx_type" />
     <None Include="..\wx_library\wx_window" />
     <None Include="..\wx_library\wx__msg.inl" />
