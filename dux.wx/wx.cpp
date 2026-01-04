@@ -12,8 +12,8 @@ using namespace WX;
 template<class>
 class WrapArgs;
 template<class...Args>
-class WrapArgs<TypeList<Args...>> {
-	using ArgsList = TypeList<Args...>;
+class WrapArgs<ArgsList<Args...>> {
+	using ArgsList = ArgsList<Args...>;
 	template<size_t...ind>
 	static inline ArgsList from(duk_context *ctx, std::index_sequence<ind...>)
 	{ return { duk_get<Args>(ctx, ind)... }; }
@@ -37,7 +37,7 @@ struct WrapFunc {
 	static constexpr bool is_ellipsis = Detail::is_ellipsis;
 	static constexpr bool is_method = Detail::is_method;
 	static constexpr bool is_static = Detail::is_static;
-	static constexpr auto nargs = ArgsList::Length;
+	static constexpr auto nargs = Detail::nargs;
 public:
 	template<NatType type>
 	static duk_ret_t native(duk_context *ctx) {
@@ -62,12 +62,11 @@ public:
 				duk_push_c(ctx, invoker.invoke(pParent, fn));
 				return 1;
 			}
-	}
+		}
 		return 0;
 	}
 
 };
-
 template<auto fn, NatType type = NatType::Static>
 void duk_push_function(duk_context *ctx) {
 	using Wrap = WrapFunc<fn>;
@@ -82,6 +81,19 @@ void duk_add_function(duk_context *ctx, const char *name, duk_idx_t idx = -1) {
 	if (idx < 0) idx -= 2;
 	duk_def_prop(ctx, idx, DUK_DEFPROP_PUBLIC_CONST);
 }
+
+template<class AnyType>
+struct WrapConstructor {
+	template<class... ArgsLists>
+		requires ConstructorsOf<AnyType, ArgsLists...>::any_ways
+	static duk_ret_t native(duk_context *ctx) {
+		auto nargs = duk_get_top(ctx);
+		if (duk_is_constructor_call(ctx)) { // new XXX(...)	==> new AnyType(...)
+			
+		} else { // XXX(...) ===> AnyType(...)
+		}
+	}
+};
 
 namespace nDux {
 

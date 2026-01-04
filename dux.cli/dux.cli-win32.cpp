@@ -11,7 +11,7 @@
 using namespace WX;
 
 import dux;
-
+constexpr auto a = '\t';
 struct duk_exception {
 	const char *msg;
 	duk_exception(const char *m) : msg(m) {}

@@ -68,11 +68,28 @@ void *duk_get_c_pointer_nassert(duk_context *ctx, duk_idx_t idx = -1) {
 	// ... object(idx) ...
 	duk_get_prop_string(ctx, idx, "__c");
 	// ... object(idx) ... "__c"
-	auto pC = duk_to_pointer(ctx, -1); // pC = object(idx)["__c"]
+	auto pC = duk_get_pointer(ctx, -1); // pC = object(idx)["__c"]
 	// ... object(idx) ... "__c"
 	duk_pop(ctx);
 	// ... object(idx) ...
 	return pC;
+}
+
+void *duk_get_c_auto_nassert(duk_context *ctx, duk_size_t *size, duk_idx_t idx = -1) {
+	void *pC = (void *)-1;
+	*size = (duk_size_t)-1;
+	// ... object(idx) ...
+	duk_get_prop_string(ctx, idx, "__c");
+	// ... object(idx) ... object(idx)["__c"]
+	if (duk_is_buffer(ctx, -1))
+		pC = duk_get_buffer(ctx, -1, size); // pC = object(idx)["__c"]
+	else if (duk_is_pointer(ctx, -1))
+		pC = duk_get_pointer(ctx, -1); // pC = object(idx)["__c"]
+	// ... object(idx) ... "__c"
+	duk_pop(ctx);
+	// ... object(idx) ...
+	return pC;
+
 }
 
 void duk_set_self_name(duk_context *ctx, const char *name, duk_idx_t idx = -1) {
@@ -105,13 +122,13 @@ AnyClass *duk_get_c_instance(duk_context *ctx, duk_idx_t idx = -1) {
 	auto pInstance = (AnyClass *)duk_get_c_instance_nassert(ctx, &size, idx);
 	if (!pInstance) {
 		duk_error(ctx, DUK_ERR_TYPE_ERROR,
-				  "C instance of %s is null",
+				  "C instance of \"%s\" is invalid",
 				  typeid(AnyClass).name());
 		duk_throw(ctx);
 	}
 	if (size != sizeof(AnyClass)) {
 		duk_error(ctx, DUK_ERR_TYPE_ERROR,
-				  "C instance size %d of %s invalid, should be %d",
+				  "C instance size %d of \"%s\" invalid, should be %d",
 				  (int)size, typeid(AnyClass).name(), (int)sizeof(AnyClass));
 		duk_throw(ctx);
 	}
@@ -127,8 +144,32 @@ AnyClass *duk_get_c_pointer(duk_context *ctx, duk_idx_t idx = -1) {
 	auto pInstance = (AnyClass *)duk_get_c_pointer_nassert(ctx, idx);
 	if (!pInstance) {
 		duk_error(ctx, DUK_ERR_TYPE_ERROR,
-				  "C pointer of %s is null",
+				  "C pointer of \"%s\" is invalid",
 				  typeid(AnyClass).name());
+		duk_throw(ctx);
+	}
+	return pInstance;
+}
+
+template<class AnyClass>
+inline AnyClass *duk_get_c_auto(duk_context *ctx, duk_idx_t idx = -1) {
+	duk_size_t size = 0;
+	auto pInstance = (AnyClass *)duk_get_c_auto_nassert(ctx, &size, idx);
+	if (!pInstance) {
+		duk_error(ctx, DUK_ERR_TYPE_ERROR,
+				  "C object of \"%s\" is invalid",
+				  typeid(AnyClass).name());
+		duk_throw(ctx);
+	} else if (pInstance == (void *)-1) {
+		duk_error(ctx, DUK_ERR_TYPE_ERROR,
+				  "C object of \"%s\" is invalid, '__c' is not buffer or pointer ",
+				  typeid(AnyClass).name());
+		duk_throw(ctx);
+	}
+	if (size != sizeof(AnyClass) && size != (duk_size_t)-1) {
+		duk_error(ctx, DUK_ERR_TYPE_ERROR,
+				  "C object size %d of \"%s\" invalid, should be %d",
+				  (int)size, typeid(AnyClass).name(), (int)sizeof(AnyClass));
 		duk_throw(ctx);
 	}
 	return pInstance;
