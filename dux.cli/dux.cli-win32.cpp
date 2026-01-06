@@ -24,7 +24,7 @@ void duk_errout(duk_context *ctx, const char *err_fmt, ...) {
 	va_end(args);
 	auto attr = Console.Attributes();
 	Console.Attributes((attr - ConsoleColor::Foreground) + ConsoleColor::Red);
-	Console.Write(CString(buffer, CountOf(buffer)));
+	Console.Write(CString(buffer, ArrCountOf(buffer)));
 	Console.Write('\n');
 	Console.Attributes(attr);
 };
@@ -113,7 +113,7 @@ static bool bCmdl = false;
 static bool bReset = false;
 static UINT duk_cmdl_count = 0;
 Event proc_ok = Event::Create().AutoReset();
-static duk_ret_t cmd_prc(duk_context *ctx) {
+static duk_ret_t cmd_prc(duk_context *ctx, void *) {
 	++duk_cmdl_count;
 	Console.Write(T("\n -- JavaScript --\n"));
 	proc_ok.Set();
@@ -128,8 +128,7 @@ static duk_ret_t cmd_prc(duk_context *ctx) {
 				elif (msg.ID() == WX_DUK_ON_CMD) {
 					duk_push_c_function(ctx, cmd_exe, 1);
 					duk_push_string(ctx, msg.ParamW<LPCSTR>());
-					auto rc = duk_pcall(ctx, 1);
-					if (rc != DUK_EXEC_SUCCESS) {
+					if (auto ret = duk_pcall(ctx, 1); ret != DUK_EXEC_SUCCESS) {
 						duk_dup(ctx, -1);
 						duk_put_global_string(ctx, "LastError");
 						duk_errout(ctx, "%s\n", duk_safe_to_stacktrace(ctx, -1));
@@ -148,9 +147,8 @@ static duk_ret_t cmd_prc(duk_context *ctx) {
 						bCmdl = false;
 						do {
 							bReset = false;
-							duk_push_c_function(ctx, cmd_prc, 0);
-							duk_call(ctx, 0);
-							duk_pop(ctx);
+							if (auto ret = duk_safe_call(ctx, cmd_prc, O, 0, 0); ret != DUK_EXEC_SUCCESS)
+								duk_errout(ctx, "CommandLine proccess error");
 						} while (bReset);
 						continue;
 					}
@@ -239,9 +237,8 @@ protected:
 	inline void OnRun() {
 		do {
 			bReset = false;
-			duk_push_c_function(ctx, cmd_prc, 0);
-			duk_call(ctx, 0);
-			duk_pop(ctx);
+			if (auto ret = duk_safe_call(ctx, cmd_prc, O, 0, 0); ret != DUK_EXEC_SUCCESS)
+				duk_errout(ctx, "CommandLine proccess error");
 			duk_gc(ctx, 0);
 		} while (bReset);
 		proc_ok.Set();

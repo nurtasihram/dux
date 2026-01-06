@@ -1,12 +1,16 @@
 module;
 
-#include "duktape.h"
-
 #include <stdint.h>
+
+#include <type_traits>
 #include <typeinfo>
 #include <memory>
 
+#include "duktape.h"
+
 export module dux;
+
+import wx;
 
 export namespace Dux {
 
@@ -19,6 +23,7 @@ bool duk_always_construct(duk_context *ctx) {
 	duk_push_current_function(ctx);
 	duk_insert(ctx, 0);
 	duk_new(ctx, nargs);
+	return true;
 }
 
 constexpr duk_uint_t DUK_DEFPROP_PUBLIC_CONST =
@@ -31,7 +36,7 @@ constexpr duk_uint_t DUK_DEFPROP_PRIVATE_CONST =
 	DUK_DEFPROP_CLEAR_WRITABLE |	// unwritable
 	DUK_DEFPROP_CLEAR_ENUMERABLE |	// unenumerable
 	DUK_DEFPROP_CLEAR_CONFIGURABLE;	// unconfigurable
-
+						
 void *duk_set_c_instance_nassert(duk_context *ctx, duk_size_t size, duk_idx_t idx = -1) {
 	// ... object(idx) ...
 	duk_push_string(ctx, "__c");
@@ -89,7 +94,6 @@ void *duk_get_c_auto_nassert(duk_context *ctx, duk_size_t *size, duk_idx_t idx =
 	duk_pop(ctx);
 	// ... object(idx) ...
 	return pC;
-
 }
 
 void duk_set_self_name(duk_context *ctx, const char *name, duk_idx_t idx = -1) {
@@ -113,41 +117,33 @@ void duk_set_destructor(duk_context *ctx, duk_c_function destructor, duk_idx_t i
 }
 
 template<class AnyClass>
-inline AnyClass *duk_put_c_instance(duk_context *ctx, duk_idx_t idx = -3) {
-	return (AnyClass *)duk_put_c_instance_nassert(ctx, sizeof(AnyClass), idx);
-}
+inline AnyClass *duk_set_c_instance(duk_context *ctx, duk_idx_t idx = -1)
+{ return (AnyClass *)duk_set_c_instance_nassert(ctx, sizeof(AnyClass), idx); }
 template<class AnyClass>
 AnyClass *duk_get_c_instance(duk_context *ctx, duk_idx_t idx = -1) {
 	duk_size_t size = 0;
 	auto pInstance = (AnyClass *)duk_get_c_instance_nassert(ctx, &size, idx);
-	if (!pInstance) {
+	if (!pInstance)
 		duk_error(ctx, DUK_ERR_TYPE_ERROR,
 				  "C instance of \"%s\" is invalid",
 				  typeid(AnyClass).name());
-		duk_throw(ctx);
-	}
-	if (size != sizeof(AnyClass)) {
+	if (size != sizeof(AnyClass))
 		duk_error(ctx, DUK_ERR_TYPE_ERROR,
 				  "C instance size %d of \"%s\" invalid, should be %d",
 				  (int)size, typeid(AnyClass).name(), (int)sizeof(AnyClass));
-		duk_throw(ctx);
-	}
 	return pInstance;
 }
 
 template<class AnyClass>
-inline void duk_set_c_pointer(duk_context *ctx, AnyClass *pInstance, duk_idx_t idx = -3) {
-	duk_set_c_pointer_nassert(ctx, (void *)pInstance, idx);
-}
+inline void duk_set_c_pointer(duk_context *ctx, AnyClass *pInstance, duk_idx_t idx = -1)
+{ duk_set_c_pointer_nassert(ctx, (void *)pInstance, idx); }
 template<class AnyClass>
 AnyClass *duk_get_c_pointer(duk_context *ctx, duk_idx_t idx = -1) {
 	auto pInstance = (AnyClass *)duk_get_c_pointer_nassert(ctx, idx);
-	if (!pInstance) {
+	if (!pInstance)
 		duk_error(ctx, DUK_ERR_TYPE_ERROR,
 				  "C pointer of \"%s\" is invalid",
 				  typeid(AnyClass).name());
-		duk_throw(ctx);
-	}
 	return pInstance;
 }
 
@@ -155,336 +151,289 @@ template<class AnyClass>
 inline AnyClass *duk_get_c_auto(duk_context *ctx, duk_idx_t idx = -1) {
 	duk_size_t size = 0;
 	auto pInstance = (AnyClass *)duk_get_c_auto_nassert(ctx, &size, idx);
-	if (!pInstance) {
+	if (!pInstance)
 		duk_error(ctx, DUK_ERR_TYPE_ERROR,
 				  "C object of \"%s\" is invalid",
 				  typeid(AnyClass).name());
-		duk_throw(ctx);
-	} else if (pInstance == (void *)-1) {
+	if (pInstance == (void *)-1)
 		duk_error(ctx, DUK_ERR_TYPE_ERROR,
 				  "C object of \"%s\" is invalid, '__c' is not buffer or pointer ",
 				  typeid(AnyClass).name());
-		duk_throw(ctx);
-	}
-	if (size != sizeof(AnyClass) && size != (duk_size_t)-1) {
+	if (size != sizeof(AnyClass) && size != (duk_size_t)-1)
 		duk_error(ctx, DUK_ERR_TYPE_ERROR,
 				  "C object size %d of \"%s\" invalid, should be %d",
 				  (int)size, typeid(AnyClass).name(), (int)sizeof(AnyClass));
-		duk_throw(ctx);
-	}
 	return pInstance;
 }
 
-#pragma region Conversion from C++ to JS
-template<class AnyType>
-void duk_push_c(duk_context *ctx, AnyType val);
-template<>
-void duk_push_c(duk_context *ctx, std::nullptr_t)
-{ duk_push_null(ctx); }
-template<>
-void duk_push_c<bool>(duk_context *ctx, bool val)
-{ duk_push_boolean(ctx, val); }
-void duk_push_c(duk_context *ctx, int32_t val)
-{ duk_push_int(ctx, val); }
-void duk_push_c(duk_context *ctx, int16_t val)
-{ duk_push_int(ctx, val); }
-template<>
-void duk_push_c(duk_context *ctx, uint32_t val)
-{ duk_push_uint(ctx, val); }
-template<>
-void duk_push_c(duk_context *ctx, uint16_t val)
-{ duk_push_uint(ctx, val); }
-template<>
-void duk_push_c(duk_context *ctx, double val)
-{ duk_push_number(ctx, val); }
-template<>
-void duk_push_c(duk_context *ctx, float val)
-{ duk_push_number(ctx, val); }
-template<>
-void duk_push_c(duk_context *ctx, const char *val)
-{ duk_push_string(ctx, val); }
+#pragma region C++/JavaScript object exchange helpers
 
-template<class... Args>
-void duk_push_c(duk_context *ctx, Args... args)
-{ (duk_push_c(ctx, args), ...); }
+#pragma region Push C++ object to JavaScript
+template<class AnyType>
+inline duk_ret_t duk_push_c(duk_context *ctx, AnyType val);
+
+template<>
+inline duk_ret_t duk_push_c<std::nullptr_t>(duk_context *ctx, std::nullptr_t)
+{ return (duk_push_null(ctx), 1); }
+template<>
+inline duk_ret_t duk_push_c<bool>(duk_context *ctx, bool val) 
+{ return (duk_push_boolean(ctx, val), 1); }
+template<>
+inline duk_ret_t duk_push_c<int32_t>(duk_context *ctx, int32_t val) 
+{ return (duk_push_int(ctx, val), 1); }
+template<>
+inline duk_ret_t duk_push_c<int16_t>(duk_context *ctx, int16_t val) 
+{ return (duk_push_int(ctx, val), 1); }
+template<>
+inline duk_ret_t duk_push_c<uint32_t>(duk_context *ctx, uint32_t val) 
+{ return (duk_push_uint(ctx, val), 1); }
+template<>
+inline duk_ret_t duk_push_c<uint16_t>(duk_context *ctx, uint16_t val) 
+{ return (duk_push_uint(ctx, val), 1); }
+template<>
+inline duk_ret_t duk_push_c<double>(duk_context *ctx, double val) 
+{ return (duk_push_number(ctx, val), 1); }
+template<>
+inline duk_ret_t duk_push_c<float>(duk_context *ctx, float val) 
+{ return (duk_push_number(ctx, val), 1); }
+template<>
+inline duk_ret_t duk_push_c<const char *>(duk_context *ctx, const char *val) 
+{ return (duk_push_string(ctx, val), 1); }
 #pragma endregion
 
-#pragma region Conversion from JS to C++
+template<class... Args>
+inline duk_ret_t duk_push_c(duk_context *ctx, Args... args)
+{ return (duk_push_c(ctx, args) + ...); }
+
+#pragma region Converts JavaScript object to C++
 template<class AnyType>
-AnyType duk_get(duk_context *ctx, duk_idx_t idx);
+inline AnyType duk_get(duk_context *ctx, duk_idx_t idx);
+
 template<>
-std::nullptr_t duk_get(duk_context *ctx, duk_idx_t idx) {
-	duk_to_null(ctx, idx);
-	return nullptr;
-}
+inline std::nullptr_t duk_get(duk_context *ctx, duk_idx_t idx)
+{ return (duk_to_null(ctx, idx), nullptr); }
 template<>
-bool duk_get(duk_context *ctx, duk_idx_t idx)
+inline bool duk_get(duk_context *ctx, duk_idx_t idx)
 { return duk_to_boolean(ctx, idx) != 0; }
 template<>
-int32_t duk_get(duk_context *ctx, duk_idx_t idx)
+inline int32_t duk_get(duk_context *ctx, duk_idx_t idx)
 { return duk_to_int(ctx, idx); }
 template<>
-int16_t duk_get(duk_context *ctx, duk_idx_t idx)
+inline int16_t duk_get(duk_context *ctx, duk_idx_t idx)
 { return (int16_t)duk_to_int(ctx, idx); }
 template<>
-uint32_t duk_get(duk_context *ctx, duk_idx_t idx)
+inline uint32_t duk_get(duk_context *ctx, duk_idx_t idx)
 { return duk_to_uint32(ctx, idx); }
 template<>
-uint16_t duk_get(duk_context *ctx, duk_idx_t idx)
+inline uint16_t duk_get(duk_context *ctx, duk_idx_t idx)
 { return duk_to_uint16(ctx, idx); }
 template<>
-double duk_get(duk_context *ctx, duk_idx_t idx)
+inline double duk_get(duk_context *ctx, duk_idx_t idx)
 { return duk_to_number(ctx, idx); }
 template<>
-float duk_get(duk_context *ctx, duk_idx_t idx)
+inline float duk_get(duk_context *ctx, duk_idx_t idx)
 { return (float)duk_to_number(ctx, idx); }
 template<>
-const char *duk_get(duk_context *ctx, duk_idx_t idx) {
+inline const char *duk_get(duk_context *ctx, duk_idx_t idx) {
 	if (auto lpsz = duk_to_string(ctx, idx))
 		return lpsz;
 	duk_type_error(ctx, "Cannot convert from_js const char *");
-	duk_throw(ctx);
+	return nullptr;
 }
-
-template<class... Args>
-void duk_get(duk_context *ctx, duk_idx_t startIdx, Args &... args)
-{ ((args = duk_get<Args>(ctx, startIdx++)), ...); }
 #pragma endregion
 
-#pragma region c function (smart native function pointer)
-
-//!!!!!!!!!!!! - TODO: add force function not for constructors - !!!!!!!!!!!!//
-
-class c_callable_base {
-public:
-	virtual ~c_callable_base() = default;
-	virtual duk_ret_t call(duk_context *ctx, duk_idx_t nargs) = 0;
-public:
-	static duk_ret_t duk_c_reflect(duk_context *ctx) {
-		auto nargs = duk_get_top(ctx);
-		// ...
-		duk_push_current_function(ctx);
-		// ... current_function
-		auto nf = duk_get_c_pointer<c_callable_base>(ctx); // ... current_function (. __c)
-		// ... current_function
-		duk_pop(ctx);
-		// ...
-		return nf->call(ctx, nargs);
-	}
-};
-
-template<class RetType, class... Args>
-class c_function : public c_callable_base {
-	using FnType = RetType(*)(Args...);
-	static constexpr size_t nArgs = sizeof...(Args);
-	static constexpr duk_ret_t duk_ret = std::is_void_v<RetType> ? 0 : 1;
-	FnType fn;
-public:
-	c_function(FnType fn) : fn(fn) {}
-public:
-	template<duk_idx_t...ind>
-	void reflect(duk_context *ctx, std::index_sequence<ind...>) {
-		if (!fn) {
-			duk_error(ctx, DUK_ERR_REFERENCE_ERROR,
-					  "C callable pointer is null");
-			duk_throw(ctx);
-		}
-		if constexpr (duk_ret) {
-			if constexpr (nArgs) {
-				auto &&ret = fn(duk_get<Args>(ctx, (duk_idx_t)(ind))...);
-				duk_push_c<RetType>(ctx, ret);
-			}
-			else {
-				auto &&ret = fn();
-				duk_push_c<RetType>(ctx, ret);
-			}
-		}
-		else if constexpr (nArgs)
-			 fn(duk_get<Args>(ctx, (duk_idx_t)(ind))...);
-		else fn();
-	}
-	duk_ret_t call(duk_context *ctx, duk_idx_t nargs) override {
-		if (nargs != nArgs) {
-			duk_error(ctx, DUK_ERR_TYPE_ERROR,
-					  "Invalid argument count, expected %d but got %d",
-					  (int)nArgs, (int)nargs);
-			duk_throw(ctx);
-		}
-		reflect(ctx, std::make_index_sequence<nArgs>{});
-		return duk_ret;
-	}
-};
-
-template<class AnyClass, class RetType, class... Args>
-class c_method : public c_callable_base {
-	using FnType = RetType(AnyClass:: *)(Args...);
-	static constexpr size_t nArgs = sizeof...(Args);
-	static constexpr duk_ret_t duk_ret = std::is_void_v<RetType> ? 0 : 1;
-	FnType fn;
-public:
-	c_method(FnType fn) : fn(fn) {}
-public:
-	template<duk_idx_t...ind>
-	void reflect(duk_context *ctx, AnyClass *pThis, std::index_sequence<ind...>) {
-		if (!fn) {
-			duk_error(ctx, DUK_ERR_REFERENCE_ERROR,
-					  "C method pointer is null");
-			duk_throw(ctx);
-		}
-		if constexpr (duk_ret) {
-			if constexpr (nArgs) {
-				auto &&ret = (pThis->*fn)(duk_get<Args>(ctx, (duk_idx_t)(ind))...);
-				duk_push_c<RetType>(ctx, ret);
-			}
-			else {
-				auto &&ret = (pThis->*fn)();
-				duk_push_c<RetType>(ctx, ret);
-			}
-		}
-		else if constexpr (nArgs)
-			 (pThis->*fn)(duk_get<Args>(ctx, (duk_idx_t)(ind))...);
-		else (pThis->*fn)();
-	}
-	duk_ret_t call(duk_context *ctx, duk_idx_t nargs) override {
-		if (nargs != nArgs) {
-			duk_error(ctx, DUK_ERR_TYPE_ERROR,
-					  "Invalid argument count, expected %d but got %d",
-					  (int)(nArgs + 1), (int)nargs);
-			duk_throw(ctx);
-		}
-		// ...
-		duk_push_this(ctx);
-		// ... this
-		auto pThis = duk_get_c_pointer<AnyClass>(ctx); // ... this (. __c)
-		// ... this
-		duk_pop(ctx);
-		// ...
-		reflect(ctx, pThis, std::make_index_sequence<nArgs>{});
-		return duk_ret;
-	}
-};
-
-void duk_push_c_callable(duk_context *ctx, c_callable_base *pFunction, duk_idx_t nargs, const char *name = nullptr) {
-	if (!pFunction) {
-		duk_error(ctx, DUK_ERR_REFERENCE_ERROR,
-				  "C callable pointer is null");
-		duk_throw(ctx);
-	}
-	// ... 
-	duk_push_c_function(ctx, c_callable_base::duk_c_reflect, nargs);
-	// ... c_function
-	duk_set_c_pointer(ctx, pFunction); // c_function.$__c = ptr
-	// ... c_function
-	duk_set_destructor(ctx, [](duk_context *ctx) {
-		auto nf = duk_get_c_pointer<c_callable_base>(ctx);
-		if (nf) delete nf;
-		return 0;
-	}); // c_function.$destructor = lambda
-	// ... c_function
-	if (name)
-		duk_set_self_name(ctx, name); // c_function.name = name
-	// ... c_function
+#pragma region Requires JavaScript object to C++
+template<class AnyType>
+inline AnyType duk_require(duk_context *ctx, duk_idx_t idx);
+template<>
+inline std::nullptr_t duk_require(duk_context *ctx, duk_idx_t idx) {
+	duk_require_null(ctx, idx);
+	return nullptr;
 }
 template<>
-void duk_push_c(duk_context *ctx, c_callable_base *pFunction)
-{ duk_push_c_callable(ctx, pFunction, DUK_VARARGS); }
+inline bool duk_require(duk_context *ctx, duk_idx_t idx)
+{ return duk_require_boolean(ctx, idx) != 0; }
+template<>
+inline int32_t duk_require(duk_context *ctx, duk_idx_t idx)
+{ return duk_require_int(ctx, idx); }
+template<>
+inline int16_t duk_require(duk_context *ctx, duk_idx_t idx)
+{ return (int16_t)duk_require_int(ctx, idx); }
+template<>
+inline uint32_t duk_require(duk_context *ctx, duk_idx_t idx)
+{ return (uint32_t)duk_require_uint(ctx, idx); }
+template<>
+inline uint16_t duk_require(duk_context *ctx, duk_idx_t idx)
+{ return (uint16_t)duk_require_uint(ctx, idx); }
+template<>
+inline double duk_require(duk_context *ctx, duk_idx_t idx)
+{ return (double)duk_require_number(ctx, idx); }
+template<>
+inline float duk_require(duk_context *ctx, duk_idx_t idx)
+{ return (float)duk_require_number(ctx, idx); }
+template<>
+inline const char *duk_require(duk_context *ctx, duk_idx_t idx) {
+	if (auto lpsz = duk_require_string(ctx, idx))
+		return lpsz;
+	duk_type_error(ctx, "Cannot convert from_js const char *");
+	return nullptr;
+}
+#pragma endregion
+
+#pragma region Special parameter tags for function reflection
+
+enum class tag_type {
+	strict_type,
+	optional_type,
+};
+template<tag_type> struct duk_tag;
 
 template<class AnyType>
-concept c_callable_type =
-	std::is_function_v<std::remove_pointer_t<AnyType>> ||
-	std::is_member_function_pointer_v<AnyType>;
+struct remove_tags_t { using type = AnyType; };
+template<class AnyType>
+using remove_tags = typename remove_tags_t<AnyType>::type;
+template<class AnyType>
+using remove_tag = typename remove_tags_t<AnyType>::removed;
 
-class c_callable {
-	mutable c_callable_base *pFunction;
-	duk_idx_t nargs;
-public:
-	c_callable(const c_callable &c) : pFunction(c.pFunction) { c.pFunction = nullptr; }
-	template<class RetType, class... Args>
-	c_callable(RetType(*pfn)(Args...)) :
-		pFunction(new c_function<RetType, Args...>(pfn)),
-		nargs(sizeof...(Args)) {}
-	template<class AnyClass, class RetType, class... Args>
-	c_callable(RetType(AnyClass:: *pmd)(Args...)) :
-		pFunction(new c_method<AnyClass, RetType, Args...>(pmd)),
-		nargs(sizeof...(Args)) {}
-	~c_callable() {
-		if (pFunction) delete pFunction;
-		pFunction = nullptr;
-	}
-public:
-	inline duk_idx_t NArgs() const { return nargs; }
-public:
-	inline operator bool() const { return pFunction; }
-	inline operator c_callable_base *() {
-		auto pFunction = this->pFunction;
-		this->pFunction = nullptr;
-		return pFunction;
-	}
-};
-inline void duk_push_c_callable(duk_context *ctx, c_callable callable, const char *name = nullptr)
-{ duk_push_c_callable(ctx, callable, callable.NArgs()); }
-template<c_callable_type AnyFunc>
-inline void duk_push_c_callable_expose(duk_context *ctx, AnyFunc fn)
-{ duk_push_c_callable(ctx, fn, typeid(AnyFunc).name()); }
-template<c_callable_type AnyFunc>
-inline void duk_push_c(duk_context *ctx, AnyFunc fn)
-{ duk_push_c_callable(ctx, fn); }
+template<class AnyType>
+inline AnyType duk_from_stack(duk_context *ctx, duk_idx_t idx)
+{ return duk_get<AnyType>(ctx, idx); }
 
-#pragma endregion
+// --- strict tag ---
 
-#pragma endregion
+template<class AnyType>
+struct strict {};
 
-namespace property {
-	struct get_set;
-	struct get : private c_callable {
-		get(c_callable getter) : c_callable(getter) {}
-		get_set set(c_callable setter);
-		using c_callable::operator c_callable_base *;
-	};
-	struct set : private c_callable {
-		set(c_callable setter) : c_callable(setter) {}
-		get_set get(c_callable getter);
-		using c_callable::operator c_callable_base *;
-	};
-	struct get_set : private get, private set {
-		get_set(property::get getter, property::set setter) : property::get(getter), property::set(setter) {}
-		inline operator c_callable_base *() {
-			if (c_callable_base *getter = (property::get)(*this)) return getter;
-			if (c_callable_base *setter = (property::set)(*this)) return setter;
-			return nullptr;
-		}
-	};
-	inline get_set get::set(c_callable setter) { return{ *this, setter }; }
-	inline get_set set::get(c_callable getter) { return{ getter, *this }; }
+template<class AnyType>
+struct remove_tags_t<strict<AnyType>> : remove_tags_t<AnyType> { using removed = AnyType; };
+
+template<class AnyType>
+constexpr bool is_strict_para = false;
+template<class AnyType>
+constexpr bool is_strict_para<strict<AnyType>> = true;
+
+template<class AnyType>
+concept strict_para = is_strict_para<AnyType>;	
+
+template<strict_para AnyType>
+inline remove_tags<AnyType> duk_from_stack(duk_context *ctx, duk_idx_t idx)
+{ return duk_require<remove_tags<AnyType>>(ctx, idx); }
+
+// --- optional tag ---
+
+template<class AnyType, AnyType def_val>
+struct optional { static constexpr AnyType default_value = def_val; };
+
+template<class AnyType, AnyType def_val>
+struct remove_tags_t<optional<AnyType, def_val>> : remove_tags_t<AnyType> { using removed = AnyType; };
+
+template<class AnyType>
+constexpr bool is_optional_para = false;
+template<class AnyType, AnyType def_val>
+constexpr bool is_optional_para<optional<AnyType, def_val>> = true;
+
+template<class AnyType>
+concept optional_para = is_optional_para<AnyType>;
+
+template<optional_para AnyType>
+inline remove_tags<AnyType> duk_from_stack(duk_context *ctx, duk_idx_t idx) {
+	if (duk_is_undefined(ctx, idx))
+		return AnyType::default_value;
+	return duk_from_stack<remove_tags<AnyType>>(ctx, idx);
 }
 
-class key {
-	duk_context *ctx;
-	const char *name;
-	duk_idx_t idx;
-public:
-	key(duk_context *ctx, const char *name, duk_idx_t idx) : ctx(ctx), name(name), idx(idx) {}
-public:
-	template<class AnyType>
-	void operator=(AnyType val) {
-		// ... object(idx) ...
-		duk_push_string(ctx, name);
-		// ... object(idx) ... name
-		duk_push_c(ctx, val);
-		// ... object(idx) ... name val
-		duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST); // object(idx).name = val
-		// ... object(idx) ...
-	}
-	inline void operator=(property::set setter) {
-		// ... object(idx) ...
-		duk_push_string(ctx, name);
-		// ... object(idx) ... name
-		duk_push_c(ctx, setter);
-		// ... object(idx) ... name val
-		duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST); // object(idx).name = val
-		// ... object(idx) ...
-	}
-};
+#pragma endregion
+
+#pragma endregion
+
+template<class...Para>
+concept no_lifecycle_conversions = (WX::DestructorEffectless<remove_tags<Para>> || ...);
+template<class...Para>
+concept lifecycle_conversions = (WX::DestructorEffective<remove_tags<Para>> || ...);
+
+// --- internal invokers ---
+template<class RetType, no_lifecycle_conversions...Args, size_t...ind>
+inline duk_ret_t duk_invoke(duk_context *ctx, WX::FunctionType auto f, duk_idx_t arg_base, std::index_sequence<ind...>) {
+	if constexpr (std::is_void_v<RetType>)
+		 return (f(duk_from_stack<Args>(ctx, arg_base + ind)...), 0);
+	else return duk_push_c<RetType>(ctx, f(duk_from_stack<Args>(ctx, arg_base + ind)...));
+}
+template<class AnyClass, class RetType, no_lifecycle_conversions...Args, size_t...ind>
+inline duk_ret_t duk_invoke(duk_context *ctx, AnyClass *pClass, WX::MethodType auto f, duk_idx_t arg_base, std::index_sequence<ind...>) {
+	if constexpr (std::is_void_v<RetType>)
+		 return ((pClass->*f)(duk_from_stack<Args>(ctx, arg_base + ind)...), 0);
+	else return duk_push_c<RetType>(ctx, (pClass->*f)(duk_from_stack<Args>(ctx, arg_base + ind)...));
+}
+
+template<class AnyClass, no_lifecycle_conversions...Args, size_t...ind>
+inline AnyClass *duk_invoke_constructor(duk_context *ctx, duk_idx_t arg_base, std::index_sequence<ind...>)
+{ return new AnyClass(f(duk_from_stack<Args>(ctx, arg_base + ind)...)); }
+template<class AnyClass, no_lifecycle_conversions...Args, size_t...ind>
+inline AnyClass *duk_invoke_constructor_(duk_context *ctx, void *pMem, duk_idx_t arg_base, std::index_sequence<ind...>)
+{ return new(pMem) AnyClass(f(duk_from_stack<Args>(ctx, arg_base + ind)...)); }
+
+// --- native invokers ---
+template<bool is_strict = false, class RetType, class...Args>
+inline duk_ret_t duk_invoke(duk_context *ctx, RetType(*f)(Args...), duk_idx_t arg_base = 0) {
+	if constexpr (is_strict)
+		 return duk_invoke<RetType, strict<Args>...>(ctx, f, arg_base, std::index_sequence_for<Args...>{});
+	else return duk_invoke<RetType, Args...>(ctx, f, arg_base, std::index_sequence_for<Args...>{});
+}
+template<bool is_strict = false, class AnyClass, class RetType, class...Args>
+inline duk_ret_t duk_invoke(duk_context *ctx, AnyClass *pClass, RetType(AnyClass:: *f)(Args...), duk_idx_t arg_base = 0) {
+	if constexpr (is_strict)
+		 return duk_invoke<AnyClass, RetType, strict<Args>...>(ctx, pClass, f, arg_base, std::index_sequence_for<Args...>{});
+	else return duk_invoke<AnyClass, RetType, Args...>(ctx, pClass, f, arg_base, std::index_sequence_for<Args...>{});
+}
+
+template<bool is_strict = false, class AnyClass, class...Args>
+inline void duk_invoke_constructor_native(duk_context *ctx, duk_idx_t obj_base, duk_idx_t arg_base = 0) {
+	if constexpr (is_strict)
+		 duk_set_c_pointer(ctx, duk_invoke_constructor<AnyClass, strict<Args>...>(ctx, arg_base, std::index_sequence_for<Args...>{}), obj_base);
+	else duk_set_c_pointer(ctx, duk_invoke_constructor<AnyClass, Args...>(ctx, arg_base,  std::index_sequence_for<Args...>{}), obj_base);
+}
+template<bool is_strict = false, class AnyClass, class...Args>
+inline void duk_invoke_constructor(duk_context *ctx, duk_idx_t obj_base, duk_idx_t arg_base = 0) {
+	auto pInst = duk_set_c_instance<AnyClass>(ctx, obj_base);
+	if constexpr (is_strict)
+		 duk_invoke_constructor<AnyClass, strict<Args>...>(ctx, pInst, arg_base, std::index_sequence_for<Args...>{});
+	else duk_invoke_constructor<AnyClass, Args...>(ctx, pInst, arg_base,  std::index_sequence_for<Args...>{});
+}
+
+// --- wrapped invokers ---
+template<WX::FunctionAllType auto fn, bool is_strict = false>
+duk_ret_t duk_invoke_wrapped_of(duk_context *ctx) {
+	return duk_invoke<is_strict>(ctx, fn);
+}
+//template<WX::MethodType auto fn, bool is_strict = false>
+//duk_ret_t duk_invoke_wrapped_of(duk_context *ctx) {
+//	auto pParent = duk_get_c_auto<WX::MethodParentOf<decltype(fn)>>(ctx);
+//	return duk_invoke<is_strict>(ctx, pParent, fn);
+//}
+
+template<class AnyClass, bool is_strict, class...Args>
+duk_ret_t duk_constructor_wrapped_of(duk_context *ctx) {
+	if (duk_always_construct(ctx))
+		return 1;
+	duk_push_this(ctx);
+	auto pInstance = duk_set_c_instance<AnyClass>(ctx);
+	duk_always_construct<Args...>(ctx, pInstance);
+}
+
+// --- function pushers and adders ---
+template<WX::FunctionAllType auto fn, bool is_strict = false>
+void duk_push_function(duk_context *ctx) {
+	duk_push_c_function(ctx, duk_invoke_wrapped_of<fn, is_strict>, (duk_idx_t)WX::ArgCountOf(fn));
+}
+template<WX::FunctionAllType auto fn, bool is_strict = false>
+void duk_add_function(duk_context *ctx, const char *name, duk_idx_t idx = -1) {
+	duk_push_string(ctx, name);
+	duk_push_function<fn, is_strict>(ctx);
+	if (idx < 0) idx -= 2;
+	duk_def_prop(ctx, idx, DUK_DEFPROP_PUBLIC_CONST);
+}
+
+#pragma endregion
 
 class Context {
 public:
