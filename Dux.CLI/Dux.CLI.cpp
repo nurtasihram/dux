@@ -24,7 +24,7 @@ void duk_errout(duk_context *ctx, const char *err_fmt, ...) {
 	va_end(args);
 	auto attr = Console.Attributes();
 	Console.Attributes((attr - ConsoleColor::Foreground) + ConsoleColor::Red);
-	Console.Write(CString(buffer, ArrCountOf(buffer)));
+	Console.Write(CString(buffer, ArrayCountOf(buffer)));
 	Console.Write('\n');
 	Console.Attributes(attr);
 };

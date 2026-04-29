@@ -8,11 +8,11 @@ module;
 
 #include "duktape.h"
 
-export module dux;
+export module Dux;
 
-import wx;
+import WandX;
 
-export namespace Dux {
+export namespace WandX::Duktape {
 
 #pragma region duktape HAL helpers (reference named of duk_xxx)
 
@@ -346,20 +346,20 @@ inline remove_tags<AnyType> duk_from_stack(duk_context *ctx, duk_idx_t idx) {
 
 #pragma endregion
 
-template<class...Para>
-concept no_lifecycle_conversions = (WX::DestructorEffectless<remove_tags<Para>> || ...);
-template<class...Para>
-concept lifecycle_conversions = (WX::DestructorEffective<remove_tags<Para>> || ...);
+template<class...AnyTypes>
+concept no_lifecycle_conversions = (WX::DestructorEffectless<AnyTypes> || ...);
+template<class...AnyTypes>
+concept lifecycle_conversions = !no_lifecycle_conversions<AnyTypes...>;
 
 // --- internal invokers ---
 template<class RetType, no_lifecycle_conversions...Args, size_t...ind>
-inline duk_ret_t duk_invoke(duk_context *ctx, WX::FunctionType auto f, duk_idx_t arg_base, std::index_sequence<ind...>) {
+inline duk_ret_t duk_invoke(duk_context *ctx, WX::StaticFunctionAllType auto f, duk_idx_t arg_base, std::index_sequence<ind...>) {
 	if constexpr (std::is_void_v<RetType>)
 		 return (f(duk_from_stack<Args>(ctx, arg_base + ind)...), 0);
 	else return duk_push_c<RetType>(ctx, f(duk_from_stack<Args>(ctx, arg_base + ind)...));
 }
 template<class AnyClass, class RetType, no_lifecycle_conversions...Args, size_t...ind>
-inline duk_ret_t duk_invoke(duk_context *ctx, AnyClass *pClass, WX::MethodType auto f, duk_idx_t arg_base, std::index_sequence<ind...>) {
+inline duk_ret_t duk_invoke(duk_context *ctx, AnyClass *pClass, WX::MethodAllType auto f, duk_idx_t arg_base, std::index_sequence<ind...>) {
 	if constexpr (std::is_void_v<RetType>)
 		 return ((pClass->*f)(duk_from_stack<Args>(ctx, arg_base + ind)...), 0);
 	else return duk_push_c<RetType>(ctx, (pClass->*f)(duk_from_stack<Args>(ctx, arg_base + ind)...));
@@ -402,9 +402,8 @@ inline void duk_invoke_constructor(duk_context *ctx, duk_idx_t obj_base, duk_idx
 
 // --- wrapped invokers ---
 template<WX::FunctionAllType auto fn, bool is_strict = false>
-duk_ret_t duk_invoke_wrapped_of(duk_context *ctx) {
-	return duk_invoke<is_strict>(ctx, fn);
-}
+duk_ret_t duk_invoke_wrapped_of(duk_context *ctx)
+{ return duk_invoke<is_strict>(ctx, fn); }
 //template<WX::MethodType auto fn, bool is_strict = false>
 //duk_ret_t duk_invoke_wrapped_of(duk_context *ctx) {
 //	auto pParent = duk_get_c_auto<WX::MethodParentOf<decltype(fn)>>(ctx);
@@ -423,7 +422,7 @@ duk_ret_t duk_constructor_wrapped_of(duk_context *ctx) {
 // --- function pushers and adders ---
 template<WX::FunctionAllType auto fn, bool is_strict = false>
 void duk_push_function(duk_context *ctx) {
-	duk_push_c_function(ctx, duk_invoke_wrapped_of<fn, is_strict>, (duk_idx_t)WX::ArgCountOf(fn));
+	duk_push_c_function(ctx, duk_invoke_wrapped_of<fn, is_strict>, (duk_idx_t)WX::ArgsCountOf(fn));
 }
 template<WX::FunctionAllType auto fn, bool is_strict = false>
 void duk_add_function(duk_context *ctx, const char *name, duk_idx_t idx = -1) {
